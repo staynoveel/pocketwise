@@ -303,7 +303,7 @@ const AIR_SENSORS = Array.from({ length: 45 }, (_, i) => {
     id: `SNS-${String(n).padStart(3, "0")}`,
     zoneId: zone.id,
     status,
-    lastSeen: minutesAgo(status === "offline" ? 52 : status === "delayed" ? 9 : Math.random() * 3),
+    lastSeen: minutesAgo(status === "offline" ? 52 : status === "delayed" ? 9 : (n % 5) * 0.6),
   };
 });
 
@@ -311,9 +311,9 @@ const AIR_SENSORS = Array.from({ length: 45 }, (_, i) => {
 // current reading, one point per hour/day depending on range.
 function buildAqiTrend(rangeKey) {
   const cfg = {
-    "24h": { points: 24, stepMin: 60, label: (i) => `${23 - i}h` },
-    "7d": { points: 7, stepMin: 60 * 24, label: (i) => `D-${6 - i}` },
-    "30d": { points: 30, stepMin: 60 * 24, label: (i) => `D-${29 - i}` },
+    "24h": { points: 24, label: (i) => `${23 - i}h` },
+    "7d": { points: 7, label: (i) => `D-${6 - i}` },
+    "30d": { points: 30, label: (i) => `D-${29 - i}` },
   }[rangeKey];
 
   const cityAqiNow = Math.round(AQ_ZONES.reduce((s, z) => s + z.aqi, 0) / AQ_ZONES.length);

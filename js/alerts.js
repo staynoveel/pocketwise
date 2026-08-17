@@ -30,12 +30,17 @@ const STATUS_LABEL = {
 let selectedIncidentId = null;
 let map = null;
 const markers = {};
+const acknowledged = new Set();
+const dispatched = new Set();
 
+// hours defaults to 24 to match the "24 Hours" option pre-selected in the
+// filterTime <select> — keeping these in sync avoids a filter that looks
+// applied in the UI but silently isn't.
 const state = {
   severity: "all",
   type: "all",
   district: "all",
-  hours: 9999,
+  hours: 24,
   search: "",
 };
 
@@ -105,7 +110,7 @@ function getFilteredIncidents() {
   return INCIDENTS.filter((i) => {
     if (state.severity !== "all" && i.severity !== state.severity) return false;
     if (state.type !== "all" && i.type !== state.type) return false;
-    if (state.district !== "all" && !i.location.name.startsWith(state.district)) return false;
+    if (state.district !== "all" && i.location.name.split(" · ")[0] !== state.district) return false;
     if (new Date(i.startedAt).getTime() < cutoff) return false;
     if (state.search) {
       const q = state.search.toLowerCase();
@@ -155,7 +160,7 @@ function renderFeed() {
       <td>
         <div class="row-actions">
           <button data-action="view" data-id="${i.id}">VIEW</button>
-          <button data-action="ack" data-id="${i.id}">ACKNOWLEDGE</button>
+          <button data-action="ack" data-id="${i.id}" ${acknowledged.has(i.id) ? "disabled" : ""}>${acknowledged.has(i.id) ? "ACKNOWLEDGED" : "ACKNOWLEDGE"}</button>
         </div>
       </td>
     </tr>
@@ -177,6 +182,7 @@ function renderFeed() {
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
       selectIncident(btn.dataset.id);
+      acknowledged.add(btn.dataset.id);
       btn.textContent = "ACKNOWLEDGED";
       btn.disabled = true;
     });
@@ -228,7 +234,7 @@ function selectIncident(id) {
     <div class="details-desc">${escapeHtml(incident.description)}</div>
 
     <div class="details-actions">
-      <button class="btn btn-primary" id="dispatchBtn">DISPATCH RESPONSE</button>
+      <button class="btn btn-primary" id="dispatchBtn" ${dispatched.has(incident.id) ? "disabled" : ""}>${dispatched.has(incident.id) ? "RESPONSE DISPATCHED" : "DISPATCH RESPONSE"}</button>
       <button class="btn btn-outline">VIEW FULL DETAILS</button>
     </div>
   `;
@@ -243,6 +249,7 @@ function selectIncident(id) {
   `).join("");
 
   document.getElementById("dispatchBtn").addEventListener("click", () => {
+    dispatched.add(incident.id);
     document.getElementById("dispatchBtn").textContent = "RESPONSE DISPATCHED";
     document.getElementById("dispatchBtn").disabled = true;
   });
@@ -319,6 +326,12 @@ function initMap() {
     const btn = e.target.closest("[data-popup-action]");
     if (!btn) return;
     selectIncident(btn.dataset.id);
+    if (btn.dataset.popupAction === "dispatch") {
+      dispatched.add(btn.dataset.id);
+      const dispatchBtn = document.getElementById("dispatchBtn");
+      dispatchBtn.textContent = "RESPONSE DISPATCHED";
+      dispatchBtn.disabled = true;
+    }
     map.closePopup();
   });
 

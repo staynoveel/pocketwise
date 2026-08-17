@@ -123,7 +123,7 @@ function selectZone(id) {
     </div>
 
     <div class="details-desc-label">Last Update</div>
-    <div class="details-desc" data-time-ago="${zone.lastUpdate}">${timeAgo(zone.lastUpdate)} · ${formatClock(zone.lastUpdate)}</div>
+    <div class="details-desc"><span data-time-ago="${zone.lastUpdate}">${timeAgo(zone.lastUpdate)}</span> · ${formatClock(zone.lastUpdate)}</div>
   `;
 
   if (aqMarkers[id]) aqMap.panTo(aqMarkers[id].getLatLng());

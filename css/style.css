@@ -829,7 +829,7 @@ select.select {
   padding: 7px 13px;
   border-radius: 5px;
 }
-.filter-pill.active { background: var(--nexus-orange); color: #14090200; color: #1A0B00; }
+.filter-pill.active { background: var(--nexus-orange); color: #1A0B00; }
 
 .search-box {
   display: flex;
