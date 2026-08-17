@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NEXUS — Air Quality</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="logo-mark" id="logoMark"></div>
+    <div class="brand-text">
+      <span class="brand-name">NEXUS</span>
+      <span class="brand-sub">Crisis Management System</span>
+    </div>
+  </div>
+  <nav class="sidebar-nav" id="sidebarNav"></nav>
+  <div class="sidebar-footer">
+    <div class="health-card">
+      <span class="health-title">System Health</span>
+      <div class="health-ring" id="healthRing"></div>
+      <span class="health-status" id="healthStatus">OPERATIONAL</span>
+      <div class="health-spark" id="healthSpark"></div>
+    </div>
+  </div>
+</aside>
+
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-title">
+      <h1>AIR QUALITY</h1>
+      <p>Environmental monitoring center — city-wide air quality tracking</p>
+    </div>
+    <div class="topbar-right">
+      <div class="pill">
+        <span class="pill-label">System Status</span>
+        <span class="pill-value tone-green"><span class="dot"></span>OPERATIONAL</span>
+      </div>
+      <div class="pill clock-pill">
+        <span class="pill-label">Live Time</span>
+        <span class="clock-time" id="clockTime">--:--:--</span>
+        <span class="clock-date" id="clockDate">-</span>
+      </div>
+      <div class="live-badge"><span class="dot"></span>LIVE</div>
+      <div class="operator">
+        <div class="op-text">
+          <div class="op-name">OPERATOR 01</div>
+          <div class="op-role">Administrator</div>
+        </div>
+        <div class="op-avatar" id="opAvatar"></div>
+      </div>
+      <button class="icon-btn" id="menuBtn" aria-label="Menu"></button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <div class="stat-grid" id="statGrid" style="grid-template-columns:repeat(4,1fr);"></div>
+
+    <div class="panel">
+      <div class="panel-head" style="border-bottom:none;">
+        <h2>SENSOR STATUS</h2>
+      </div>
+      <div class="sensor-status-row" id="sensorStatusRow"></div>
+    </div>
+
+    <div class="split-row">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>AIR QUALITY MAP</h2>
+          <div class="controls-row">
+            <select class="select" id="filterHours">
+              <option value="9999">All Zones</option>
+            </select>
+            <button class="btn btn-icon btn-outline" id="mapFullscreenBtn" aria-label="Fullscreen"></button>
+          </div>
+        </div>
+        <div class="map-wrap">
+          <div id="leafletAirMap"></div>
+          <div class="map-ctrl-group">
+            <button class="map-ctrl-btn" id="zoomInBtn" aria-label="Zoom in"></button>
+            <button class="map-ctrl-btn" id="zoomOutBtn" aria-label="Zoom out"></button>
+            <button class="map-ctrl-btn" id="locateBtn" aria-label="Locate / recenter"></button>
+          </div>
+        </div>
+        <div class="map-legend">
+          <span class="legend-item"><span class="legend-dot" style="background:var(--normal-green)"></span>Good</span>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--yellow)"></span>Moderate</span>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--warning-orange)"></span>Unhealthy</span>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--critical-red)"></span>Very Unhealthy</span>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--purple)"></span>Hazardous</span>
+        </div>
+      </div>
+
+      <div class="panel details-panel">
+        <div class="panel-head">
+          <h2>ZONE DETAILS</h2>
+          <span class="badge" id="detailsCatBadge"></span>
+        </div>
+        <div class="panel-body" id="zoneDetailsBody">
+          <div class="details-empty">Select a zone on the map or in the list below to view details.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>AQI TREND</h2>
+          <div class="chart-tabs" id="chartTabs">
+            <button class="chart-tab active" data-range="24h">24H</button>
+            <button class="chart-tab" data-range="7d">7D</button>
+            <button class="chart-tab" data-range="30d">30D</button>
+          </div>
+        </div>
+        <div class="chart-canvas-wrap">
+          <canvas id="aqiTrendChart"></canvas>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>POLLUTANTS</h2>
+          <span style="font-size:11px;color:var(--text-secondary);">City Average</span>
+        </div>
+        <div id="pollutantsList"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>MONITORED ZONES</h2></div>
+      <div class="aq-zone-list" id="zoneList"></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://unpkg.com/chart.js@4.4.4/dist/chart.umd.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/data.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/air-quality.js"></script>
+</body>
+</html>
