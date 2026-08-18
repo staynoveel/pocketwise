@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS — Power Grid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<style>
+  :root{
+  --bg-0:#080A0C;
+  --bg-1:#101316;
+  --bg-2:#15191D;
+  --line:#2A3035;
+  --text:#F2F2F2;
+  --text-dim:#8A9198;
+  --amber:#FF5A00;
+  --amber-2:#FF7A18;
+  --gold:#FFB020;
+  --cyan:#00D9D9;
+  --cyan-2:#00B8B8;
+  --green:#18C77A;
+  --red:#FF3B30;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{
+  background:var(--bg-0);
+  color:var(--text);
+  font-family:'Vazirmatn', sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+.mono{ font-family:'JetBrains Mono', monospace; }
+
+/* background grid texture */
+body::before{
+  content:"";
+  position:fixed; inset:0;
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size:48px 48px;
+  opacity:.05;
+  pointer-events:none;
+  z-index:0;
+}
+
+.shell{
+  display:grid;
+  grid-template-columns:240px 1fr;
+  min-height:100vh;
+  position:relative;
+  z-index:1;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar{
+  background:var(--bg-1);
+  border-right:1px solid var(--line);
+  padding:22px 16px;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+.brand{
+  display:flex; align-items:center; gap:10px;
+  padding:6px 8px 22px;
+  border-bottom:1px solid var(--line);
+  margin-bottom:16px;
+}
+.brand-mark{
+  width:34px; height:34px; border-radius:8px;
+  background:linear-gradient(135deg, var(--amber), var(--gold));
+  display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:15px; color:#080A0C;
+  box-shadow:0 0 18px rgba(255,90,0,.35);
+}
+.brand-text{ line-height:1.25; }
+.brand-text b{ font-size:14px; letter-spacing:.5px; display:block; }
+.brand-text span{ font-size:10.5px; color:var(--text-dim); letter-spacing:.5px; }
+
+.nav-item{
+  display:flex; align-items:center; gap:12px;
+  padding:11px 12px;
+  border-radius:8px;
+  color:var(--text-dim);
+  font-size:13.5px;
+  font-weight:500;
+  cursor:pointer;
+  transition:.15s;
+  position:relative;
+}
+.nav-item svg{ width:17px; height:17px; flex-shrink:0; opacity:.85; }
+.nav-item:hover{ background:var(--bg-2); color:var(--text); }
+.nav-item{ text-decoration:none; }
+.nav-item.unbuilt{ opacity:.38; cursor:default; }
+.nav-item.unbuilt:hover{ background:none; color:var(--text-dim); }
+.nav-item.active{
+  background:linear-gradient(90deg, rgba(255,90,0,.14), rgba(255,90,0,.02));
+  color:var(--text);
+  border-left:2px solid var(--amber);
+}
+.nav-item.active svg{ color:var(--amber); opacity:1; }
+.nav-item .badge{
+  margin-left:auto;
+  background:var(--red);
+  color:#fff;
+  font-size:9.5px;
+  font-weight:700;
+  padding:1px 6px;
+  border-radius:20px;
+}
+.nav-spacer{ flex:1; }
+.sidebar-foot{
+  border-top:1px solid var(--line);
+  padding-top:14px;
+  font-size:10.5px;
+  color:var(--text-dim);
+  display:flex; justify-content:space-between;
+}
+.sidebar-foot b{ color:var(--green); }
+
+/* ===== MAIN ===== */
+.main{ padding:20px 26px 40px; }
+
+.topbar{
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:20px;
+}
+.topbar-title{ display:flex; align-items:center; gap:14px; }
+.topbar-title h1{ font-size:19px; font-weight:700; letter-spacing:.3px; }
+.pulse-dot{
+  width:8px; height:8px; border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 0 0 rgba(24,199,122,.6);
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{
+  0%{ box-shadow:0 0 0 0 rgba(24,199,122,.55); }
+  70%{ box-shadow:0 0 0 8px rgba(24,199,122,0); }
+  100%{ box-shadow:0 0 0 0 rgba(24,199,122,0); }
+}
+.live-tag{
+  display:flex; align-items:center; gap:6px;
+  font-size:11px; color:var(--green); font-weight:700; letter-spacing:.5px;
+}
+.topbar-right{ display:flex; align-items:center; gap:18px; }
+.clock{ font-size:12.5px; color:var(--text-dim); }
+.clock b{ color:var(--text); font-weight:600; }
+.icon-btn{
+  width:34px; height:34px; border-radius:8px;
+  background:var(--bg-1); border:1px solid var(--line);
+  display:flex; align-items:center; justify-content:center;
+  color:var(--text-dim); cursor:pointer; position:relative;
+}
+.icon-btn svg{ width:16px; height:16px; }
+.icon-btn .dot{
+  position:absolute; top:-3px; left:-3px;
+  width:8px; height:8px; border-radius:50%;
+  background:var(--red); border:2px solid var(--bg-0);
+}
+.operator{
+  display:flex; align-items:center; gap:8px;
+  font-size:12px; color:var(--text-dim);
+}
+.operator b{ color:var(--text); }
+.operator .avatar{
+  width:30px; height:30px; border-radius:50%;
+  background:linear-gradient(135deg, var(--cyan), var(--cyan-2));
+}
+
+/* ===== KPI ROW ===== */
+.kpi-row{
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  gap:14px;
+  margin-bottom:16px;
+}
+.kpi{
+  background:var(--bg-1);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:16px 18px;
+  position:relative;
+  overflow:hidden;
+}
+.kpi::after{
+  content:"";
+  position:absolute; top:0; right:0; bottom:0; width:3px;
+  background:var(--accent, var(--amber));
+}
+.kpi-label{
+  font-size:11px; color:var(--text-dim); letter-spacing:.4px;
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:10px;
+}
+.kpi-value{ font-size:26px; font-weight:700; letter-spacing:.3px; }
+.kpi-value span{ font-size:13px; color:var(--text-dim); font-weight:500; }
+.kpi-delta{
+  margin-top:8px; font-size:11.5px; font-weight:600;
+  display:flex; align-items:center; gap:4px;
+}
+.up{ color:var(--green); }
+.down{ color:var(--red); }
+.flat{ color:var(--gold); }
+
+/* ===== GRID LAYOUT ===== */
+.layout{
+  display:grid;
+  grid-template-columns:1fr 320px;
+  gap:16px;
+}
+.col-gap{ display:flex; flex-direction:column; gap:16px; }
+.col-gap > .events-panel{ flex:1; display:flex; flex-direction:column; }
+.events-panel .events-list{ flex:1; justify-content:flex-start; }
+.events-panel .event-row{ padding-bottom:10px; border-bottom:1px dashed var(--line); }
+.events-panel .event-row:last-child{ border-bottom:none; padding-bottom:0; }
+
+.panel{
+  background:var(--bg-1);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:18px 20px;
+}
+.panel-head{
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:16px;
+}
+.panel-head h2{ font-size:14px; font-weight:700; letter-spacing:.3px; }
+.panel-head .sub{ font-size:11px; color:var(--text-dim); margin-top:2px; }
+.panel-action{
+  font-size:11px; color:var(--cyan); font-weight:600; cursor:pointer;
+}
+
+/* ===== MAP PANEL ===== */
+.map-wrap{
+  position:relative;
+  height:360px;
+  border-radius:10px;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(0,217,217,.06), transparent 55%),
+    radial-gradient(circle at 70% 70%, rgba(255,90,0,.07), transparent 55%),
+    var(--bg-2);
+  border:1px solid var(--line);
+}
+.map-svg{ width:100%; height:100%; }
+.node-label{
+  font-family:'JetBrains Mono', monospace;
+  font-size:10px; fill:var(--text-dim);
+}
+.node-name{
+  font-family:'Vazirmatn', sans-serif;
+  font-size:10.5px; fill:var(--text); font-weight:600;
+}
+.zone-alert{
+  position:absolute; bottom:14px; left:14px;
+  background:rgba(255,59,48,.12);
+  border:1px solid rgba(255,59,48,.4);
+  border-radius:10px;
+  padding:10px 14px;
+  max-width:230px;
+  backdrop-filter:blur(6px);
+}
+.zone-alert .t{
+  font-size:11px; color:var(--red); font-weight:700; letter-spacing:.4px;
+  display:flex; align-items:center; gap:6px; margin-bottom:6px;
+}
+.zone-alert .d{ font-size:11px; color:var(--text-dim); line-height:1.6; }
+.map-legend{
+  position:absolute; top:14px; left:14px;
+  display:flex; flex-direction:column; gap:6px;
+  font-size:10.5px; color:var(--text-dim);
+}
+.map-legend .li{ display:flex; align-items:center; gap:6px; }
+.map-legend .sw{ width:9px; height:9px; border-radius:50%; }
+
+/* ===== POWER PLANTS LIST ===== */
+.plant-list{ display:flex; flex-direction:column; gap:10px; }
+.plant-item{
+  display:flex; align-items:center; justify-content:space-between;
+  background:var(--bg-2);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:12px 14px;
+}
+.plant-left{ display:flex; align-items:center; gap:10px; }
+.plant-dot{ width:9px; height:9px; border-radius:50%; }
+.plant-name{ font-size:12.5px; font-weight:600; }
+.plant-sub{ font-size:10.5px; color:var(--text-dim); margin-top:2px; }
+.plant-right{ text-align:left; }
+.plant-load{ font-size:13px; font-weight:700; }
+.plant-status{
+  font-size:9.5px; font-weight:700; letter-spacing:.4px;
+  padding:2px 7px; border-radius:20px; margin-top:3px; display:inline-block;
+}
+.st-active{ background:rgba(24,199,122,.15); color:var(--green); }
+.st-warn{ background:rgba(255,176,32,.15); color:var(--gold); }
+.st-critical{ background:rgba(255,59,48,.15); color:var(--red); }
+
+/* ===== CHARTS ===== */
+.chart-row{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:14px;
+}
+.chart-box{
+  background:var(--bg-1);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:16px 18px;
+}
+.chart-box .ch-title{ font-size:12px; color:var(--text-dim); margin-bottom:4px; }
+.chart-box .ch-value{ font-size:20px; font-weight:700; margin-bottom:10px; }
+.chart-box .ch-value small{ font-size:11px; color:var(--text-dim); font-weight:500; }
+.sparkline{ width:100%; height:56px; }
+
+/* ===== DISTRIBUTION ===== */
+.dist-bars{ display:flex; flex-direction:column; gap:12px; }
+.dist-row{ display:grid; grid-template-columns:70px 1fr 40px; align-items:center; gap:10px; }
+.dist-row .lbl{ font-size:11.5px; color:var(--text-dim); }
+.dist-track{ height:8px; background:var(--bg-2); border-radius:6px; overflow:hidden; border:1px solid var(--line); }
+.dist-fill{ height:100%; border-radius:6px; }
+.dist-row .pct{ font-size:11.5px; font-weight:700; text-align:left; }
+
+/* ===== RIGHT COLUMN ===== */
+.health-ring{
+  display:flex; align-items:center; gap:16px;
+}
+.ring-wrap{ position:relative; width:96px; height:96px; flex-shrink:0; }
+.ring-val{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  flex-direction:column;
+}
+.ring-val b{ font-size:20px; }
+.ring-val span{ font-size:9px; color:var(--text-dim); }
+.health-legend{ display:flex; flex-direction:column; gap:8px; flex:1; }
+.hl-row{ display:flex; align-items:center; justify-content:space-between; font-size:11.5px; }
+.hl-left{ display:flex; align-items:center; gap:7px; color:var(--text-dim); }
+.hl-dot{ width:8px; height:8px; border-radius:3px; }
+
+.critical-box{
+  background:linear-gradient(180deg, rgba(255,59,48,.1), rgba(255,59,48,.02));
+  border:1px solid rgba(255,59,48,.35);
+  border-radius:12px;
+  padding:16px 18px;
+}
+.critical-box .ch{
+  display:flex; align-items:center; gap:8px;
+  color:var(--red); font-weight:700; font-size:12.5px; margin-bottom:10px;
+}
+.critical-box .row{
+  display:flex; justify-content:space-between;
+  font-size:11.5px; color:var(--text-dim);
+  padding:6px 0; border-bottom:1px dashed var(--line);
+}
+.critical-box .row:last-of-type{ border-bottom:none; }
+.critical-box .row b{ color:var(--text); font-weight:600; }
+.critical-btn{
+  width:100%; margin-top:12px;
+  background:var(--red); color:#fff;
+  border:none; border-radius:8px;
+  padding:10px; font-size:12px; font-weight:700;
+  font-family:inherit; cursor:pointer;
+  letter-spacing:.3px;
+}
+
+.events-list{ display:flex; flex-direction:column; gap:10px; }
+.event-row{ display:flex; gap:10px; align-items:flex-start; }
+.event-dot{ width:7px; height:7px; border-radius:50%; margin-top:5px; flex-shrink:0; }
+.event-text{ font-size:11.5px; color:var(--text); line-height:1.5; }
+.event-time{ font-size:10px; color:var(--text-dim); margin-top:2px; }
+
+@media (max-width:1100px){
+  .shell{ grid-template-columns:1fr; }
+  .sidebar{ display:none; }
+  .layout{ grid-template-columns:1fr; }
+  .kpi-row, .chart-row{ grid-template-columns:1fr 1fr; }
+}
+</style>
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">NX</div>
+      <div class="brand-text">
+        <b>NEXUS</b>
+        <span>CROSS COMMAND CENTER</span>
+      </div>
+    </div>
+
+    <a class="nav-item" href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg> Dashboard</a>
+    <a class="nav-item" href="city-map.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20l-5.5-2V4L9 6m0 14l6-2m-6 2V6m6 12l5.5 2V6L15 4m0 14V4m0 2L9 6"/></svg> City Map</a>
+    <a class="nav-item" href="traffic.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg> Traffic</a>
+    <a class="nav-item active" href="power-grid.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg> Power Grid</a>
+    <a class="nav-item" href="air-quality.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8 6 5 9.5 5 13.5A7 7 0 0019 13.5C19 9.5 16 6 12 2z"/></svg> Air Quality</a>
+    <a class="nav-item unbuilt" title="No page built for this section yet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2s7 6.5 7 12a7 7 0 01-14 0c0-5.5 7-12 7-12z"/></svg> Water System</a>
+    <a class="nav-item unbuilt" title="No page built for this section yet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> Transit</a>
+    <a class="nav-item" href="security.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11z"/></svg> Security</a>
+    <a class="nav-item" href="alerts.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg> Alerts &amp; Incidents<span class="badge">7</span></a>
+    <a class="nav-item" href="settings.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.2a1.7 1.7 0 00-1-1.5 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.2a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.2a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.2a1.7 1.7 0 00-1.5 1z"/></svg> Settings</a>
+
+    <div class="nav-spacer"></div>
+    <div class="sidebar-foot">
+      <span>SYSTEM STATUS</span>
+      <b>92% Uptime</b>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <div class="topbar">
+      <div class="topbar-title">
+        <h1>Power Grid</h1>
+        <div class="live-tag"><span class="pulse-dot"></span> LIVE DATA</div>
+      </div>
+      <div class="topbar-right">
+        <div class="clock mono">14:35:42 · <b>May 29, 2026</b></div>
+        <div class="icon-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+          <span class="dot"></span>
+        </div>
+        <div class="operator">
+          <div class="avatar"></div>
+          <div>Operator ID<br><b>#7</b></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-row">
+      <div class="kpi" style="--accent:var(--amber)">
+        <div class="kpi-label">TOTAL GENERATION</div>
+        <div class="kpi-value">4.82 <span>GW</span></div>
+        <div class="kpi-delta up">▲ 4.2% vs yesterday</div>
+      </div>
+      <div class="kpi" style="--accent:var(--cyan)">
+        <div class="kpi-label">TOTAL LOAD</div>
+        <div class="kpi-value">3.91 <span>GW</span></div>
+        <div class="kpi-delta down">▼ 1.8% vs yesterday</div>
+      </div>
+      <div class="kpi" style="--accent:var(--gold)">
+        <div class="kpi-label">GRID LOAD</div>
+        <div class="kpi-value">76 <span>%</span></div>
+        <div class="kpi-delta flat">— within normal range</div>
+      </div>
+      <div class="kpi" style="--accent:var(--green)">
+        <div class="kpi-label">ACTIVE PLANTS</div>
+        <div class="kpi-value">8 <span>/ 8</span></div>
+        <div class="kpi-delta up">All plants online</div>
+      </div>
+    </div>
+
+    <!-- LAYOUT -->
+    <div class="layout">
+      <div class="col-gap">
+
+        <!-- MAP PANEL -->
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Live Grid Map</h2>
+              <div class="sub">Real-time monitoring of substations and plants</div>
+            </div>
+            <div class="panel-action">View full map ↗</div>
+          </div>
+
+          <div class="map-wrap" id="mapWrap">
+            <div class="map-legend">
+              <div class="li"><span class="sw" style="background:var(--green)"></span> Active</div>
+              <div class="li"><span class="sw" style="background:var(--gold)"></span> Warning</div>
+              <div class="li"><span class="sw" style="background:var(--red)"></span> Critical</div>
+            </div>
+
+            <svg class="map-svg" viewBox="0 0 600 360">
+              <!-- connection lines -->
+              <g stroke="var(--cyan-2)" stroke-width="1.4" opacity="0.5" fill="none">
+                <path d="M110,90 L280,150" />
+                <path d="M280,150 L470,90" />
+                <path d="M280,150 L280,250" />
+                <path d="M280,250 L120,290" />
+                <path d="M280,250 L440,280" />
+                <path d="M110,90 L280,250" stroke="var(--red)" stroke-dasharray="4 4" opacity="0.7"/>
+              </g>
+              <!-- energy flow dots -->
+              <circle r="2.4" fill="var(--cyan)">
+                <animateMotion dur="3s" repeatCount="indefinite" path="M110,90 L280,150"/>
+              </circle>
+              <circle r="2.4" fill="var(--cyan)">
+                <animateMotion dur="3.4s" repeatCount="indefinite" path="M280,150 L470,90"/>
+              </circle>
+              <circle r="2.4" fill="var(--amber)">
+                <animateMotion dur="2.6s" repeatCount="indefinite" path="M280,250 L440,280"/>
+              </circle>
+
+              <!-- substations -->
+              <g>
+                <circle cx="280" cy="150" r="5" fill="var(--cyan)"/>
+                <circle cx="280" cy="150" r="9" fill="none" stroke="var(--cyan)" opacity="0.4"/>
+                <text x="292" y="147" class="node-name">SUB-A1</text>
+              </g>
+              <g>
+                <circle cx="280" cy="250" r="5" fill="var(--gold)"/>
+                <circle cx="280" cy="250" r="9" fill="none" stroke="var(--gold)" opacity="0.4"/>
+                <text x="292" y="247" class="node-name">SUB-B4</text>
+              </g>
+
+              <!-- plants -->
+              <g>
+                <circle cx="110" cy="90" r="7" fill="var(--green)"/>
+                <text x="70" y="72" class="node-name">NORTH PLANT</text>
+                <text x="80" y="112" class="node-label">A1</text>
+              </g>
+              <g>
+                <circle cx="470" cy="90" r="7" fill="var(--green)"/>
+                <text x="440" y="72" class="node-name">EAST PLANT</text>
+                <text x="480" y="112" class="node-label">D1</text>
+              </g>
+              <g>
+                <circle cx="120" cy="290" r="7" fill="var(--red)">
+                  <animate attributeName="opacity" values="1;0.3;1" dur="1.2s" repeatCount="indefinite"/>
+                </circle>
+                <text x="80" y="315" class="node-name">SOUTH PLANT</text>
+                <text x="98" y="270" class="node-label">C3</text>
+              </g>
+              <g>
+                <circle cx="440" cy="280" r="7" fill="var(--green)"/>
+                <text x="410" y="305" class="node-name">WEST PLANT</text>
+                <text x="450" y="262" class="node-label">D4</text>
+              </g>
+            </svg>
+
+            <div class="zone-alert">
+              <div class="t">⚠ CRITICAL POWER ALERT — BLACKOUT RISK</div>
+              <div class="d">District D1 · Power availability: 21%<br>Estimated impact: 42,000 residents</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CHARTS ROW -->
+        <div class="chart-row">
+          <div class="chart-box">
+            <div class="ch-title">Power Generation</div>
+            <div class="ch-value">4.82 GW <small class="up">▲ 4.2%</small></div>
+            <svg class="sparkline" viewBox="0 0 200 56" preserveAspectRatio="none">
+              <polyline fill="none" stroke="var(--amber)" stroke-width="2" points="0,40 25,35 50,38 75,25 100,28 125,15 150,20 175,10 200,14"/>
+              <polyline fill="rgba(255,90,0,.12)" stroke="none" points="0,40 25,35 50,38 75,25 100,28 125,15 150,20 175,10 200,14 200,56 0,56"/>
+            </svg>
+          </div>
+          <div class="chart-box">
+            <div class="ch-title">Power Consumption</div>
+            <div class="ch-value">3.91 GW <small class="down">▼ 0.6%</small></div>
+            <svg class="sparkline" viewBox="0 0 200 56" preserveAspectRatio="none">
+              <polyline fill="none" stroke="var(--cyan)" stroke-width="2" points="0,20 25,25 50,18 75,30 100,22 125,32 150,26 175,34 200,30"/>
+              <polyline fill="rgba(0,217,217,.1)" stroke="none" points="0,20 25,25 50,18 75,30 100,22 125,32 150,26 175,34 200,30 200,56 0,56"/>
+            </svg>
+          </div>
+          <div class="chart-box">
+            <div class="ch-title">Grid Frequency</div>
+            <div class="ch-value">49.98 Hz <small class="flat" style="color:var(--green)">Stable</small></div>
+            <svg class="sparkline" viewBox="0 0 200 56" preserveAspectRatio="none">
+              <polyline fill="none" stroke="var(--green)" stroke-width="2" points="0,28 25,26 50,29 75,27 100,28 125,25 150,29 175,26 200,28"/>
+              <polyline fill="rgba(24,199,122,.1)" stroke="none" points="0,28 25,26 50,29 75,27 100,28 125,25 150,29 175,26 200,28 200,56 0,56"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- DISTRIBUTION + PLANTS -->
+        <div class="chart-row" style="grid-template-columns:1.1fr 1fr;">
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <h2>Power Distribution</h2>
+                <div class="sub">Energy source share</div>
+              </div>
+            </div>
+            <div class="dist-bars">
+              <div class="dist-row">
+                <div class="lbl">National Grid</div>
+                <div class="dist-track"><div class="dist-fill" style="width:96%; background:var(--amber)"></div></div>
+                <div class="pct">96%</div>
+              </div>
+              <div class="dist-row">
+                <div class="lbl">Solar</div>
+                <div class="dist-track"><div class="dist-fill" style="width:74%; background:var(--gold)"></div></div>
+                <div class="pct">74%</div>
+              </div>
+              <div class="dist-row">
+                <div class="lbl">Wind</div>
+                <div class="dist-track"><div class="dist-fill" style="width:58%; background:var(--cyan)"></div></div>
+                <div class="pct">58%</div>
+              </div>
+              <div class="dist-row">
+                <div class="lbl">Storage</div>
+                <div class="dist-track"><div class="dist-fill" style="width:41%; background:var(--green)"></div></div>
+                <div class="pct">41%</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <h2>Power Plants</h2>
+                <div class="sub">Live status</div>
+              </div>
+              <div class="panel-action">View all ↗</div>
+            </div>
+            <div class="plant-list">
+              <div class="plant-item">
+                <div class="plant-left">
+                  <span class="plant-dot" style="background:var(--green)"></span>
+                  <div><div class="plant-name">North Plant</div><div class="plant-sub">Capacity 1.4GW</div></div>
+                </div>
+                <div class="plant-right"><div class="plant-load">92%</div><span class="plant-status st-active">ACTIVE</span></div>
+              </div>
+              <div class="plant-item">
+                <div class="plant-left">
+                  <span class="plant-dot" style="background:var(--red)"></span>
+                  <div><div class="plant-name">South Plant</div><div class="plant-sub">Capacity 1.1GW</div></div>
+                </div>
+                <div class="plant-right"><div class="plant-load">21%</div><span class="plant-status st-critical">CRITICAL</span></div>
+              </div>
+              <div class="plant-item">
+                <div class="plant-left">
+                  <span class="plant-dot" style="background:var(--green)"></span>
+                  <div><div class="plant-name">West Plant</div><div class="plant-sub">Capacity 980MW</div></div>
+                </div>
+                <div class="plant-right"><div class="plant-load">87%</div><span class="plant-status st-active">ACTIVE</span></div>
+              </div>
+              <div class="plant-item">
+                <div class="plant-left">
+                  <span class="plant-dot" style="background:var(--gold)"></span>
+                  <div><div class="plant-name">East Plant</div><div class="plant-sub">Capacity 1.3GW</div></div>
+                </div>
+                <div class="plant-right"><div class="plant-load">65%</div><span class="plant-status st-warn">WARNING</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT SIDEBAR -->
+      <div class="col-gap">
+
+        <div class="panel">
+          <div class="panel-head"><h2>Grid Health</h2></div>
+          <div class="health-ring">
+            <div class="ring-wrap">
+              <svg viewBox="0 0 96 96" width="96" height="96">
+                <circle cx="48" cy="48" r="40" fill="none" stroke="var(--bg-2)" stroke-width="9"/>
+                <circle cx="48" cy="48" r="40" fill="none" stroke="var(--green)" stroke-width="9"
+                  stroke-dasharray="251.2" stroke-dashoffset="20" stroke-linecap="round"
+                  transform="rotate(-90 48 48)"/>
+              </svg>
+              <div class="ring-val"><b>92%</b><span>HEALTH</span></div>
+            </div>
+            <div class="health-legend">
+              <div class="hl-row"><span class="hl-left"><span class="hl-dot" style="background:var(--cyan)"></span>Transmission</span><b>96%</b></div>
+              <div class="hl-row"><span class="hl-left"><span class="hl-dot" style="background:var(--amber)"></span>Distribution</span><b>89%</b></div>
+              <div class="hl-row"><span class="hl-left"><span class="hl-dot" style="background:var(--gold)"></span>Storage</span><b>64%</b></div>
+              <div class="hl-row"><span class="hl-left"><span class="hl-dot" style="background:var(--green)"></span>Generation</span><b>94%</b></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="critical-box">
+          <div class="ch">🔺 CRITICAL ALERT — District D1</div>
+          <div class="row"><span>Status</span><b style="color:var(--red)">Blackout risk</b></div>
+          <div class="row"><span>Power availability</span><b>21%</b></div>
+          <div class="row"><span>Affected population</span><b>42,000 residents</b></div>
+          <button class="critical-btn">View district details</button>
+        </div>
+
+        <div class="panel events-panel">
+          <div class="panel-head">
+            <div><h2>Recent Events</h2></div>
+            <div class="panel-action">View all ↗</div>
+          </div>
+          <div class="events-list">
+            <div class="event-row">
+              <span class="event-dot" style="background:var(--red)"></span>
+              <div><div class="event-text">Grid Fault Detected — District D1</div><div class="event-time mono">14:33:01</div></div>
+            </div>
+            <div class="event-row">
+              <span class="event-dot" style="background:var(--gold)"></span>
+              <div><div class="event-text">Load Spike — East Plant 65%</div><div class="event-time mono">14:12:47</div></div>
+            </div>
+            <div class="event-row">
+              <span class="event-dot" style="background:var(--green)"></span>
+              <div><div class="event-text">West Plant Recovered — Powered District D1</div><div class="event-time mono">13:58:19</div></div>
+            </div>
+            <div class="event-row">
+              <span class="event-dot" style="background:var(--cyan)"></span>
+              <div><div class="event-text">Substation SUB-A1 rerouted successfully</div><div class="event-time mono">13:40:02</div></div>
+            </div>
+            <div class="event-row">
+              <span class="event-dot" style="background:var(--gold)"></span>
+              <div><div class="event-text">Maintenance scheduled — South Plant turbine 2</div><div class="event-time mono">13:15:38</div></div>
+            </div>
+            <div class="event-row">
+              <span class="event-dot" style="background:var(--green)"></span>
+              <div><div class="event-text">Storage bank D4 reached 90% capacity</div><div class="event-time mono">12:52:04</div></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>

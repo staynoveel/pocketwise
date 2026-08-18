@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS — Security Monitoring</title>
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css" />
+</head>
+<body>
+<style>
+  *{box-sizing:border-box}
+:root{
+  --bg:#03080d;--panel:#071118;--border:#1a2e38;--text:#dce5e8;--muted:#718087;
+  --cyan:#20d7d0;--gold:#dca73b;--amber:#d28e2d;--red:#ff493e;
+}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}
+body{overflow-x:hidden}
+svg{display:block}
+.nav svg,.icon-btn svg,.operator svg,.brand-mark svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.kpi-head svg,.zoomctl svg{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+
+/* ===== SIDEBAR ===== */
+.sidebar{position:fixed;inset:0 auto 0 0;width:238px;padding:18px 12px;background:#03080e;border-right:1px solid #172932;z-index:20;display:flex;flex-direction:column}
+.brand{display:flex;align-items:center;gap:11px;margin:2px 10px 26px}
+.brand-mark{width:38px;height:38px;display:grid;place-items:center;border:1px solid #c6963d;color:var(--gold)}
+.brand-name{font-size:20px;letter-spacing:3px}
+.brand-sub{color:#687980;font-size:9px;letter-spacing:.4px;margin-top:2px}
+.nav{display:flex;flex-direction:column}
+.nav a{height:42px;display:flex;align-items:center;gap:13px;margin:3px 0;padding:0 13px;color:#9aa7ac;text-decoration:none;border:1px solid transparent;border-radius:8px;font-size:11px;letter-spacing:.3px}
+.nav a:hover{background:#08151c}
+.nav a.unbuilt{opacity:.38;cursor:default}
+.nav a.unbuilt:hover{background:none}
+.nav a.active{color:var(--gold);border-color:#78541c;background:linear-gradient(90deg,#21170b,#0b1115);box-shadow:0 0 24px #dca73b1f}
+.nav a.active svg{stroke:var(--gold)}
+.nav b{margin-left:auto;background:#bd2d27;color:#fff;border-radius:10px;padding:2px 6px;font-size:8px}
+.system-card{margin-top:auto;padding:15px;text-align:center;background:#061017;border:1px solid #1b303a;border-radius:9px}
+.tiny{font-size:8px;letter-spacing:1.2px}
+.muted{color:#687980}
+.ring{width:80px;height:80px;display:grid;place-items:center;margin:12px auto 8px;border:6px solid #12313a;border-top-color:var(--cyan);border-right-color:#2dbd72;border-radius:50%}
+.ring span{font-size:18px}
+.mini-pulse{width:100%;height:22px;margin-top:8px}
+.mini-pulse polyline{fill:none;stroke:var(--cyan);stroke-width:1.6}
+
+/* ===== MAIN / TOPBAR ===== */
+.main{margin-left:238px;min-height:100vh}
+.topbar{min-height:82px;display:flex;align-items:center;justify-content:space-between;padding:17px 19px;border-bottom:1px solid #172831}
+.topbar h1{margin:5px 0 2px;font-size:20px;font-weight:500;letter-spacing:1.8px}
+.topbar p{margin:0;color:#687980;font-size:10px}
+.top-right{display:flex;align-items:center;gap:18px;color:#77868c;font-size:9px}
+.live-pill{display:flex;align-items:center;gap:6px;padding:8px 14px;background:#08181c;border:1px solid #1c3238;border-radius:6px;color:var(--cyan);font-weight:700;letter-spacing:.5px}
+.clock-wrap strong{display:block;color:#dce5e8;font-size:15px;font-weight:600}
+.clock-wrap small{color:#687980}
+.operator{display:flex;align-items:center;gap:9px;padding-left:18px;border-left:1px solid #24343b;color:#ccd4d7}
+.operator b{display:block;font-size:10px}
+.operator small{color:#687980}
+.icon-btn{width:32px;height:32px;display:grid;place-items:center;background:#09151b;border:1px solid #29414a;border-radius:6px;color:#9eabb0;cursor:pointer}
+.icon-btn:hover{color:var(--cyan);border-color:var(--cyan)}
+.cyan{color:var(--cyan)!important}
+.red{color:var(--red)!important}
+.gold{color:var(--gold)!important}
+
+/* ===== PANEL BASE ===== */
+.panel{overflow:hidden;background:var(--panel);border:1px solid var(--border);border-radius:9px;box-shadow:inset 0 0 28px #0003}
+.panel-head{min-height:51px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;border-bottom:1px solid #182a33}
+.panel-head b{font-size:9px;letter-spacing:1.2px}
+.panel-head small{display:block;color:#697980;font-size:8px;margin-top:2px}
+.panel-head>span{color:#697980;font-size:8px;cursor:pointer}
+.panel-head>span:hover{color:var(--cyan)}
+
+/* ===== KPIs ===== */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;padding:10px}
+.kpi{position:relative;min-height:104px;padding:14px;background:var(--panel);border:1px solid var(--border);border-radius:9px;overflow:hidden}
+.kpi-head{display:flex;align-items:center;gap:8px;color:#6c7b82}
+.kpi-head span{font-size:8px;letter-spacing:1.1px}
+.kpi-head.gold{color:var(--gold)}
+.kpi-head.red{color:var(--red)}
+.kpi strong{display:block;margin:10px 0 4px;color:#e2e8e9;font-size:25px;font-weight:600}
+.kpi strong small{color:#718087;font-size:10px;font-weight:400;margin-left:4px}
+.kpi em{color:var(--cyan);font-size:8px;font-style:normal;letter-spacing:.2px}
+.kpi.critical{border-color:#6d302c}
+.kpi .spark{position:absolute;right:12px;bottom:12px;width:76px;height:22px;opacity:.85}
+.kpi .spark polyline{fill:none;stroke-width:1.6}
+.kpi .spark.cyan polyline{stroke:var(--cyan)}
+.kpi .spark.gold polyline{stroke:var(--gold)}
+.kpi .spark.red polyline{stroke:var(--red)}
+
+/* ===== MAIN GRID (map + right column) ===== */
+.main-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:9px;padding:0 10px}
+.map-wrap{position:relative;height:455px;overflow:hidden;background:#061019}
+.map-wrap:after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 90px #02070c66;z-index:2}
+#securityMap{position:absolute;inset:0}
+.leaflet-container{background:#06141d!important;font-family:Arial,Helvetica,sans-serif}
+.leaflet-control-attribution{background:#040d13cc!important;color:#5c6d74!important;font-size:8px!important}
+.leaflet-control-attribution a{color:#7d8d93!important}
+.leaflet-tooltip{background:#040d13ee;color:#dce5e8;border:1px solid #263c45;font-size:9px;border-radius:5px}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#040d13;color:#dce5e8;border:1px solid #263c45}
+
+/* ===== Map Layers (draggable) ===== */
+.map-layers{position:absolute;z-index:1000;top:15px;left:16px;width:174px;overflow:hidden;background:#040d13f2;border:1px solid #29404a;border-radius:8px;box-shadow:0 10px 30px #0007;user-select:none}
+.layers-head{display:flex;justify-content:space-between;align-items:flex-start;padding:11px;color:#d4dcdf;border-bottom:1px solid #1b3039;font-size:8px;letter-spacing:1px;cursor:grab}
+.layers-head:active{cursor:grabbing}
+.layers-head small{font-weight:400;letter-spacing:.3px;text-transform:none}
+.layers-head button{background:none;border:none;color:#697980;font-size:13px;cursor:pointer;line-height:1;padding:0 2px}
+.layers-head button:hover{color:var(--red)}
+.live-status{padding:6px 11px;font-size:7px;color:#5c6d74;border-bottom:1px solid #142530;letter-spacing:.2px}
+.live-status.ok{color:var(--cyan)}
+.live-status.err{color:#e0977a}
+.map-layers label{display:flex;align-items:center;gap:7px;padding:8px 10px;color:#9aa8ad;font-size:8px;cursor:pointer}
+.map-layers label:hover{background:#20d7d00d}
+.map-layers input{accent-color:var(--cyan)}
+.map-layers label i{margin-left:auto;font-style:normal;color:#3f5259}
+.map-layers #resetLayers{width:calc(100% - 20px);margin:8px 10px 10px;height:28px;color:#9eabb0;background:#09151b;border:1px solid #29414a;border-radius:5px;font-size:8px;cursor:pointer}
+.map-layers #resetLayers:hover{color:var(--cyan);border-color:var(--cyan)}
+.map-layers-reopen{position:absolute;z-index:1000;top:15px;left:16px;padding:8px 12px;background:#040d13f2;border:1px solid #29404a;border-radius:8px;color:#9aa8ad;font-size:9px;letter-spacing:.5px;cursor:pointer}
+.map-layers-reopen:hover{color:var(--cyan);border-color:var(--cyan)}
+
+.zoomctl{position:absolute;z-index:1000;right:14px;bottom:14px;display:flex;flex-direction:column;gap:6px}
+.zoomctl button{width:30px;height:30px;display:grid;place-items:center;background:#040d13f2;border:1px solid #29404a;border-radius:6px;color:#dce5e8;font-size:14px;cursor:pointer}
+.zoomctl button:hover{color:var(--cyan);border-color:var(--cyan)}
+
+/* security marker + zone tag styling (used by script.js divIcons) */
+.sec-marker{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:12px;background:#040d13;border:1.4px solid currentColor;box-shadow:0 0 10px currentColor,0 2px 6px #000a}
+.sec-marker.cam{color:var(--cyan)}
+.sec-marker.sensor{color:var(--amber)}
+.sec-marker.incident{color:var(--red)}
+.sec-marker.police{color:#7fb0ff}
+.sec-zone-tag{display:flex;flex-direction:column;align-items:center;transform:translateY(-4px);text-shadow:0 0 12px currentColor;color:#5aa7a3;pointer-events:none}
+.sec-zone-tag strong{font-size:12px;font-weight:700}
+.sec-zone-tag span{font-size:7px;letter-spacing:1px;margin-top:2px}
+.sec-zone-tag.warning{color:var(--gold)}
+.sec-zone-tag.critical{color:var(--red)}
+.map-fatal-error{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:26px;color:#e0977a;font-size:11px;line-height:1.6;background:#040d13;z-index:3}
+
+/* ===== Right column ===== */
+.right-col{display:flex;flex-direction:column;gap:9px}
+.row{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;border-bottom:1px solid #172830}
+.row:last-of-type{border-bottom:none}
+.row b{display:block;font-size:9px}
+.row .row-status{display:flex;align-items:center;gap:5px;margin-top:4px;font-size:7px}
+.row .row-status i{width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block}
+.row-right{text-align:right}
+.row-right strong{display:block;font-size:12px}
+.row-right svg{margin-top:3px;margin-left:auto}
+.camsum{display:flex;justify-content:space-between;padding:10px 14px;font-size:8px;font-weight:700;border-top:1px solid #172830}
+
+.alert{padding:11px 14px;border-bottom:1px solid #172830;display:flex;gap:9px}
+.alert:last-child{border-bottom:none}
+.alert svg{flex-shrink:0;margin-top:2px;width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.8}
+.alert-body b{display:block;margin-bottom:5px;font-size:7px;letter-spacing:.4px}
+.alert-body strong{display:block;font-size:8px;font-weight:600;color:#dce5e8}
+.alert-body small{display:block;margin-top:4px;color:#66777e;font-size:7px}
+.alert-time{margin-left:auto;color:#5c6d74;font-size:7px;white-space:nowrap}
+
+.zonetable-head{display:grid;grid-template-columns:1fr 1fr 1fr;padding:8px 14px 4px;color:#546167;font-size:7px;letter-spacing:.6px}
+.zonerow{display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center;padding:10px 14px;margin:0 6px 6px;border-radius:6px;font-size:8px;font-weight:600}
+.zonerow.critical{background:#2a0f0d}
+.zonerow.warning{background:#241a08}
+.zonerow.stable{background:transparent;border:1px solid #16262d}
+
+/* ===== charts row ===== */
+.charts-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;padding:9px 10px}
+.chart{display:flex;height:160px;padding:12px 14px 0}
+.chart-yaxis{display:flex;flex-direction:column;justify-content:space-between;padding-bottom:6px;color:#5c6d74;font-size:7px;margin-right:8px}
+.chart svg{flex:1;width:100%;height:100%}
+.line-chart polyline{fill:none;stroke:var(--cyan);stroke-width:2;filter:drop-shadow(0 0 4px var(--cyan))}
+.bar-chart rect{fill:var(--cyan);opacity:.85}
+.labels{display:flex;justify-content:space-between;padding:0 14px 12px 36px;color:#607078;font-size:7px}
+
+.donut-wrap{display:flex;align-items:center;gap:18px;padding:20px 16px}
+#donutChart{width:110px;height:110px;flex-shrink:0;transform:rotate(-90deg)}
+.donut-track{fill:none;stroke:#132228;stroke-width:14}
+.donut-seg{fill:none;stroke-width:14;stroke-linecap:butt}
+.seg-normal{stroke:var(--cyan)}
+.seg-warning{stroke:var(--gold)}
+.seg-critical{stroke:var(--red)}
+.donut-legend{display:flex;flex-direction:column;gap:10px;font-size:8px;color:#9aa8ad}
+.donut-legend .dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:6px}
+.donut-legend b{margin-left:6px;color:#dce5e8}
+.dot.red{background:var(--red)}
+.dot.gold{background:var(--gold)}
+.dot.cyan{background:var(--cyan)}
+
+/* ===== recent events table ===== */
+.events-table{margin:0 10px 14px}
+.table-head{display:grid;grid-template-columns:70px 1.6fr 1.3fr 90px 90px;padding:9px 16px;color:#546167;font-size:7px;letter-spacing:.6px;border-bottom:1px solid #172830}
+.tr{display:grid;grid-template-columns:70px 1.6fr 1.3fr 90px 90px;align-items:center;padding:11px 16px;border-bottom:1px solid #172830;font-size:8px}
+.tr:last-child{border-bottom:none}
+.tr time{color:#697980;font-size:7px}
+.tr .ev-desc{display:flex;align-items:center;gap:7px;color:#dce5e8}
+.tr .ev-desc svg{width:12px;height:12px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.8}
+.tr .ev-loc{color:#8b969c}
+.tr .ev-src{color:#8b969c}
+.status-badge{font-size:7px;font-weight:700;letter-spacing:.4px;padding:4px 8px;border-radius:4px;display:inline-block;width:fit-content}
+.status-badge.critical{color:var(--red);background:#2a0f0d}
+.status-badge.warning{color:var(--gold);background:#241a08}
+.status-badge.normal{color:var(--cyan);background:#08201f}
+
+/* ===== responsive ===== */
+@media(max-width:1100px){
+  .sidebar{width:72px}
+  .brand>div:last-child,.system-card{display:none}
+  .brand{justify-content:center}
+  .nav a{justify-content:center;padding:0}
+  .nav a span{display:none}
+  .nav b{display:none}
+  .main{margin-left:72px}
+  .main-grid{grid-template-columns:1fr}
+  .right-col{display:grid;grid-template-columns:1fr 1fr}
+  .charts-grid{grid-template-columns:1fr 1fr}
+  .charts-grid>.panel:last-child{grid-column:1/-1}
+}
+@media(max-width:820px){
+  .top-right{gap:10px}
+  .operator small{display:none}
+  .kpis{grid-template-columns:1fr 1fr}
+}
+@media(max-width:720px){
+  .sidebar{width:58px;padding:10px 6px}
+  .main{margin-left:58px}
+  .top-right .operator,.top-right .clock-wrap small{display:none}
+  .kpis{grid-template-columns:1fr 1fr}
+  .right-col,.charts-grid{grid-template-columns:1fr}
+  .map-wrap{height:380px}
+  .map-layers{width:150px}
+  .table-head,.tr{grid-template-columns:56px 1.4fr 1fr;}
+  .table-head span:nth-child(4),.table-head span:nth-child(5),.tr .ev-src,.tr .status-badge{display:none}
+}
+@media(max-width:480px){
+  .kpis{grid-template-columns:1fr}
+  .topbar h1{font-size:16px}
+  .map-layers{top:10px;left:10px;width:140px}
+}
+
+/* --- map search (monitor another location), live sync tag, live position dot (added) --- */
+.map-search{position:absolute;z-index:1000;top:15px;right:14px;width:230px}
+.map-search input{width:100%;padding:9px 12px;background:#040d13f2;border:1px solid #29404a;border-radius:8px;color:#dce5e8;font-size:10px;outline:none}
+.map-search input::placeholder{color:#5c6d74}
+.map-search input:focus{border-color:var(--cyan)}
+.city-suggestions{position:absolute;top:calc(100% + 6px);left:0;right:0;background:#040d13f7;border:1px solid #29404a;border-radius:8px;overflow:hidden;box-shadow:0 12px 26px #0009}
+.city-suggestion{padding:9px 11px;font-size:9px;color:#c7d0d3;cursor:pointer;border-bottom:1px solid #16262d}
+.city-suggestion:last-child{border-bottom:0}
+.city-suggestion:hover{background:#0c1b22;color:#fff}
+
+.sync-tag{position:absolute;z-index:1000;top:62px;right:14px;padding:5px 10px;background:#040d13d9;border:1px solid #1b303a;border-radius:6px;color:var(--cyan);font-size:7px;letter-spacing:.5px}
+
+.you-are-here{position:relative;width:16px;height:16px}
+.you-are-here .yah-dot{position:absolute;inset:3px;background:#4285f4;border:2px solid #eaf1ff;border-radius:50%;box-shadow:0 0 6px #000a;z-index:2}
+.you-are-here .yah-pulse{position:absolute;inset:-6px;background:#4285f44d;border-radius:50%;animation:yahpulse 2.2s infinite}
+@keyframes yahpulse{0%{transform:scale(.35);opacity:1}100%{transform:scale(1.7);opacity:0}}
+
+@media(max-width:720px){
+  .map-search{width:170px}
+  .sync-tag{display:none}
+}
+
+</style>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2 3 6.5v11L12 22l9-4.5v-11L12 2z"/><path d="M12 2v20M3 6.5l9 4.5 9-4.5M3 17.5l9-4.5 9 4.5"/></svg>
+      </div>
+      <div><div class="brand-name">NEXUS</div><div class="brand-sub">Crisis Management System</div></div>
+    </div>
+    <nav class="nav">
+      <a href="dashboard.html"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/></svg><span>Dashboard</span></a>
+      <a href="city-map.html"><svg viewBox="0 0 24 24"><path d="M9 20 3 18V6l6 2m0 12 6-2m-6 2V8m6 10 6 2V8l-6-2m0 14V6m0 2L9 6"/></svg><span>City Map</span></a>
+      <a href="traffic.html"><svg viewBox="0 0 24 24"><rect x="4" y="9" width="16" height="8" rx="2"/><circle cx="8" cy="17" r="1.6"/><circle cx="16" cy="17" r="1.6"/><path d="M6 9V6h12v3"/></svg><span>Traffic</span></a>
+      <a class="unbuilt" title="No page built for this section yet"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="14" rx="4"/><path d="M5 12h14M8 20l-2-3M18 20l-2-3"/><circle cx="8.5" cy="15.5" r=".6"/><circle cx="15.5" cy="15.5" r=".6"/></svg><span>Metro &amp; Transit</span></a>
+      <a href="air-quality.html"><svg viewBox="0 0 24 24"><path d="M7 17a4 4 0 0 1 0-8 5 5 0 0 1 9.6-1.5A4.5 4.5 0 0 1 17 17H7z"/></svg><span>Air Quality</span></a>
+      <a class="unbuilt" title="No page built for this section yet"><svg viewBox="0 0 24 24"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg><span>Water System</span></a>
+      <a href="power-grid.html"><svg viewBox="0 0 24 24"><polygon points="13 2 4 14 11 14 10 22 20 9 13 9 13 2"/></svg><span>Power Grid</span></a>
+      <a href="security.html" class="active"><svg viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 8.7 8 11 4.6-2.3 8-6 8-11V5l-8-3z"/></svg><span>Security</span></a>
+      <a href="alerts.html"><svg viewBox="0 0 24 24"><path d="M10.3 3.9 1.9 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.9 3.9a2 2 0 0 0-3.6 0z"/><path d="M12 9v4M12 17h.01"/></svg><span>Alerts &amp; Incidents</span><b id="alertsBadge">07</b></a>
+      <a href="settings.html"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Reports &amp; Analytics</span></a>
+    </nav>
+    <div class="system-card">
+      <div class="muted tiny">SYSTEM STATUS</div>
+      <div class="ring" id="statusRing"><span>92%</span></div>
+      <div class="tiny muted">OPERATIONAL</div>
+      <svg class="mini-pulse" viewBox="0 0 100 24" preserveAspectRatio="none"><polyline points="0,14 18,14 24,6 30,20 36,10 44,14 100,14"/></svg>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <div class="muted tiny">NEXUS / SECURITY</div>
+        <h1>SECURITY MONITORING</h1>
+        <p>Real-Time Urban Security Network</p>
+      </div>
+      <div class="top-right">
+        <span class="live-pill">● NEXUS LIVE</span>
+        <div class="clock-wrap"><strong id="clock">14:35:42</strong><small id="clockDate">May 25, 2024</small></div>
+        <div class="operator">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+          <div><b>OPERATOR 01</b><small>Administrator</small></div>
+        </div>
+        <a class="icon-btn" href="index.html" title="Log out"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></a>
+      </div>
+    </header>
+
+    <section class="kpis">
+      <div class="kpi">
+        <div class="kpi-head"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="14" height="11" rx="2"/><path d="M16 10l6-3v10l-6-3"/></svg><span>CAMERAS ONLINE</span></div>
+        <strong id="kpiCamerasOnline">1,248<small>/ 1,260</small></strong>
+        <em class="cyan" id="kpiCamerasPct">99.0% Operational</em>
+        <svg class="spark cyan" viewBox="0 0 100 30" preserveAspectRatio="none"><polyline points="0,22 15,18 30,20 45,12 60,16 75,8 100,10"/></svg>
+      </div>
+      <div class="kpi">
+        <div class="kpi-head"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.2"/><path d="M7.5 7.5a6.5 6.5 0 0 1 9 0M4.8 4.8a10.4 10.4 0 0 1 14.4 0"/></svg><span>ACTIVE SENSORS</span></div>
+        <strong id="kpiSensors">3,842</strong>
+        <em class="cyan">● Online</em>
+        <svg class="spark cyan" viewBox="0 0 100 30" preserveAspectRatio="none"><polyline points="0,10 15,16 30,9 45,18 60,11 75,15 100,9"/></svg>
+      </div>
+      <div class="kpi">
+        <div class="kpi-head gold"><svg viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 8.7 8 11 4.6-2.3 8-6 8-11V5l-8-3z"/><path d="M12 8v4M12 15h.01"/></svg><span>SECURITY ALERTS</span></div>
+        <strong id="kpiAlerts">07</strong>
+        <em class="gold" id="kpiAlertsSub">↗ 2 in last hour</em>
+        <svg class="spark gold" viewBox="0 0 100 30" preserveAspectRatio="none"><polyline points="0,20 15,18 30,20 45,14 60,17 75,6 100,9"/></svg>
+      </div>
+      <div class="kpi critical">
+        <div class="kpi-head red"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg><span>CRITICAL ZONES</span></div>
+        <strong id="kpiCriticalZones">03</strong>
+        <em class="red">High Priority</em>
+        <svg class="spark red" viewBox="0 0 100 30" preserveAspectRatio="none"><polyline points="0,12 15,20 30,10 45,22 60,14 75,24 100,16"/></svg>
+      </div>
+    </section>
+
+    <section class="main-grid">
+      <section class="panel map-panel">
+        <div class="panel-head"><div><b>LIVE SECURITY MAP</b><small>Camera &amp; Sensor Network</small></div><span class="cyan" id="mapLiveTag">● LIVE DATA</span></div>
+        <div class="map-wrap">
+          <div id="securityMap"></div>
+
+          <div class="map-layers" id="mapLayers">
+            <div class="layers-head" id="layersHandle"><span>MAP LAYERS<br><small class="muted">Drag to rearrange</small></span><button id="layersClose" title="Hide panel">×</button></div>
+            <div class="live-status" id="liveStatus">Loading live data…</div>
+            <label><input type="checkbox" data-layer="cameras" checked> Cameras <i>›</i></label>
+            <label><input type="checkbox" data-layer="sensors" checked> Sensors <i>›</i></label>
+            <label><input type="checkbox" data-layer="incidents" checked> Incidents <i>›</i></label>
+            <label><input type="checkbox" data-layer="heatmap" checked> Security Heatmap <i>›</i></label>
+            <label><input type="checkbox" data-layer="zones" checked> Critical Zones <i>›</i></label>
+            <label><input type="checkbox" data-layer="police"> Police Units <i>›</i></label>
+            <button id="resetLayers">Reset Layers</button>
+          </div>
+
+          <button class="map-layers-reopen" id="layersReopen" hidden title="Show Map Layers">☰ MAP LAYERS</button>
+
+          <div class="map-search" id="mapSearch">
+            <input id="mapSearchInput" placeholder="Monitor another location…" autocomplete="off">
+            <div id="mapSearchSuggestions" class="city-suggestions" hidden></div>
+          </div>
+          <div class="sync-tag" id="syncTag" hidden>LIVE · synced just now</div>
+
+          <div class="zoomctl">
+            <button id="zoomIn">+</button>
+            <button id="zoomOut">−</button>
+            <button id="locateBtn" title="Center on my location"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="right-col">
+        <section class="panel">
+          <div class="panel-head"><b>CAMERA NETWORK</b><span id="camTotalTag">1,260 TOTAL</span></div>
+          <div id="cameraList"></div>
+          <div class="camsum">
+            <span class="cyan" id="sumOnline">1,248 ONLINE</span>
+            <span class="red" id="sumOffline">9 OFFLINE</span>
+            <span class="gold" id="sumWarning">3 WARNING</span>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head"><b>ACTIVE ALERTS</b><span class="red" id="alertsTag">07 ACTIVE</span></div>
+          <div id="alertsList"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head"><b>CRITICAL SECURITY ZONES</b><span>View All</span></div>
+          <div class="zonetable-head"><span>ZONE</span><span>STATUS</span><span>THREAT LEVEL</span></div>
+          <div id="zonesList"></div>
+        </section>
+      </aside>
+    </section>
+
+    <section class="charts-grid">
+      <section class="panel">
+        <div class="panel-head"><b>SECURITY EVENTS (24H)</b></div>
+        <div class="chart line-chart">
+          <div class="chart-yaxis"><span>100</span><span>75</span><span>50</span><span>25</span><span>0</span></div>
+          <svg viewBox="0 0 600 160" preserveAspectRatio="none" id="eventsLineChart"><polyline points="0,132 65,120 130,126 200,90 260,110 330,72 390,96 460,54 520,78 600,35"/></svg>
+        </div>
+        <div class="labels"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>NOW</span></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><b>CAMERA ACTIVITY</b></div>
+        <div class="chart bar-chart">
+          <div class="chart-yaxis"><span>1K</span><span>750</span><span>500</span><span>250</span><span>0</span></div>
+          <svg viewBox="0 0 600 160" preserveAspectRatio="none" id="activityBarChart"></svg>
+        </div>
+        <div class="labels"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>NOW</span></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><b>ALERT DISTRIBUTION</b></div>
+        <div class="donut-wrap">
+          <svg viewBox="0 0 120 120" id="donutChart">
+            <circle class="donut-track" cx="60" cy="60" r="46"/>
+            <circle class="donut-seg seg-normal" cx="60" cy="60" r="46"/>
+            <circle class="donut-seg seg-warning" cx="60" cy="60" r="46"/>
+            <circle class="donut-seg seg-critical" cx="60" cy="60" r="46"/>
+          </svg>
+          <div class="donut-legend">
+            <div><i class="dot red"></i>CRITICAL <b id="legCritical">07 (6%)</b></div>
+            <div><i class="dot gold"></i>WARNING <b id="legWarning">18 (17%)</b></div>
+            <div><i class="dot cyan"></i>NORMAL <b id="legNormal">92 (77%)</b></div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section class="panel events-table">
+      <div class="panel-head"><b>RECENT SECURITY EVENTS</b><span>View All</span></div>
+      <div class="table-head">
+        <span>TIME</span><span>EVENT</span><span>LOCATION</span><span>SOURCE</span><span>STATUS</span>
+      </div>
+      <div id="recentEvents"></div>
+    </section>
+  </main>
+
+  <script src="vendor/leaflet/leaflet.js"></script>
+  <script src="vendor/leaflet.heat/leaflet-heat.js"></script>
+  <script>
+    /* =====================================================================
+   NEXUS — SECURITY MONITORING
+   What's REAL (from free, keyless public APIs, based on live location):
+     - map markers: cameras, sensors, incidents, police units
+     - the security heatmap (built from those same real points)
+     - "Critical Security Zones" (real nearby neighbourhoods, coloured
+       from real nearby data)
+     - "Camera Network" list (real cameras found nearby)
+     - the small live-status line in the Map Layers panel
+
+   What's ILLUSTRATIVE (clearly a representative demo, not a live feed —
+   there is no free citywide camera-management or incident-dispatch API):
+     - the four big KPI numbers (1,248/1,260 cameras, 3,842 sensors, etc.)
+       and their sparklines
+     - "Active Alerts" / "Recent Security Events" sample entries
+     - the three analytics charts (Security Events, Camera Activity,
+       Alert Distribution)
+   ===================================================================== */
+
+/* ---------- clock ---------- */
+const clockEl = document.getElementById("clock");
+const dateEl = document.getElementById("clockDate");
+function tickClock(){
+  const d = new Date();
+  clockEl.textContent = d.toLocaleTimeString("en-US",{hour12:false});
+  dateEl.textContent = d.toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
+}
+tickClock(); setInterval(tickClock, 1000);
+
+/* ---------- draggable Map Layers panel (mouse + touch via Pointer Events) ---------- */
+(function(){
+  const panel = document.querySelector(".map-layers");
+  const handle = document.getElementById("layersHandle");
+  const closeBtn = document.getElementById("layersClose");
+  const reopenBtn = document.getElementById("layersReopen");
+  const mapWrap = document.querySelector(".map-wrap");
+  if(!panel || !handle || !mapWrap) return;
+
+  let dragging=false, sx=0, sy=0, ox=0, oy=0;
+  const posKey = "nexus-security-layers-pos-v1";
+
+  function clamp(x,y){
+    const r = mapWrap.getBoundingClientRect();
+    const p = panel.getBoundingClientRect();
+    return { x:Math.max(8,Math.min(x,r.width-p.width-8)), y:Math.max(8,Math.min(y,r.height-p.height-8)) };
+  }
+  function applySaved(){
+    try{
+      const saved = JSON.parse(localStorage.getItem(posKey));
+      if(saved && Number.isFinite(saved.x) && Number.isFinite(saved.y)){
+        panel.style.left = saved.x+"px"; panel.style.top = saved.y+"px";
+      }
+    }catch(e){}
+  }
+  handle.addEventListener("pointerdown", e=>{
+    if(e.target.closest("button")) return;
+    const r = panel.getBoundingClientRect(), mr = mapWrap.getBoundingClientRect();
+    dragging=true; sx=e.clientX; sy=e.clientY; ox=r.left-mr.left; oy=r.top-mr.top;
+    panel.style.transition="none";
+    handle.setPointerCapture?.(e.pointerId);
+    e.preventDefault();
+  });
+  handle.addEventListener("pointermove", e=>{
+    if(!dragging) return;
+    const p = clamp(ox+e.clientX-sx, oy+e.clientY-sy);
+    panel.style.left=p.x+"px"; panel.style.top=p.y+"px";
+  });
+  function stopDrag(){
+    if(!dragging) return;
+    dragging=false;
+    try{ localStorage.setItem(posKey, JSON.stringify({x:parseFloat(panel.style.left),y:parseFloat(panel.style.top)})); }catch(e){}
+  }
+  handle.addEventListener("pointerup", stopDrag);
+  handle.addEventListener("pointercancel", stopDrag);
+
+  closeBtn?.addEventListener("click", ()=>{ panel.hidden=true; reopenBtn.hidden=false; });
+  reopenBtn?.addEventListener("click", ()=>{ panel.hidden=false; reopenBtn.hidden=true; });
+
+  document.getElementById("resetLayers")?.addEventListener("click", ()=>{
+    panel.style.left="16px"; panel.style.top="15px";
+    try{ localStorage.removeItem(posKey); }catch(e){}
+    document.querySelectorAll(".map-layers input[type=checkbox]").forEach(inp=>{
+      inp.checked = inp.dataset.layer!=="police";
+      inp.dispatchEvent(new Event("change"));
+    });
+  });
+
+  applySaved();
+})();
+
+/* ---------- illustrative charts (sparklines / bar chart / donut) ---------- */
+(function(){
+  // camera activity bar chart — representative hourly volume shape
+  const svg = document.getElementById("activityBarChart");
+  if(svg){
+    const vals = [40,55,35,30,45,60,70,65,80,75,90,85,95,88,70,65,80,92,100,96,85,78,60,72];
+    const w = 600, h = 160, bw = w/vals.length;
+    vals.forEach((v,i)=>{
+      const bh = (v/100)*h;
+      const rect = document.createElementNS("http://www.w3.org/2000/svg","rect");
+      rect.setAttribute("x", (i*bw+bw*0.18).toFixed(1));
+      rect.setAttribute("y", (h-bh).toFixed(1));
+      rect.setAttribute("width", (bw*0.64).toFixed(1));
+      rect.setAttribute("height", bh.toFixed(1));
+      rect.setAttribute("rx","1.5");
+      svg.appendChild(rect);
+    });
+  }
+
+  // donut chart — critical/warning/normal distribution
+  const CRIT=7, WARN=18, NORM=92, TOTAL=CRIT+WARN+NORM;
+  const R = 46, C = 2*Math.PI*R;
+  function seg(cls, value, offsetTurns){
+    const el = document.querySelector("."+cls);
+    if(!el) return;
+    const frac = value/TOTAL;
+    el.style.strokeDasharray = `${(frac*C).toFixed(2)} ${C.toFixed(2)}`;
+    el.style.strokeDashoffset = (-offsetTurns*C).toFixed(2);
+  }
+  seg("seg-critical", CRIT, 0);
+  seg("seg-warning", WARN, CRIT/TOTAL);
+  seg("seg-normal", NORM, (CRIT+WARN)/TOTAL);
+})();
+
+/* ---------- illustrative Active Alerts / Recent Security Events (sample data) ---------- */
+(function(){
+  const alertIcon = `<svg viewBox="0 0 24 24"><path d="M10.3 3.9 1.9 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.9 3.9a2 2 0 0 0-3.6 0z"/><path d="M12 9v4M12 17h.01"/></svg>`;
+  const checkIcon = `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>`;
+
+  const alerts = [
+    {level:"CRITICAL", cls:"red", title:"Unauthorized Access", loc:"District B4", time:"14:35:02"},
+    {level:"WARNING", cls:"gold", title:"Suspicious Activity", loc:"District A2", time:"14:33:41"},
+    {level:"WARNING", cls:"gold", title:"Camera Connection Lost", loc:"CAM-203", time:"14:31:08"},
+  ];
+  document.getElementById("alertsList").innerHTML = alerts.map(a=>`
+    <div class="alert">
+      <span class="${a.cls}">${alertIcon}</span>
+      <div class="alert-body"><b class="${a.cls}">● ${a.level}</b><strong>${a.title}</strong><small>${a.loc}</small></div>
+      <span class="alert-time">${a.time}</span>
+    </div>`).join("");
+
+  const events = [
+    {time:"14:35:02", icon:alertIcon, cls:"red", desc:"Unauthorized Access Detected", loc:"District B4 - Gate 7", src:"CAM-204", status:"critical", statusLabel:"CRITICAL"},
+    {time:"14:33:41", icon:alertIcon, cls:"gold", desc:"Suspicious Activity Reported", loc:"District A2 - Building 12", src:"CAM-118", status:"warning", statusLabel:"WARNING"},
+    {time:"14:31:08", icon:alertIcon, cls:"gold", desc:"Camera Connection Lost", loc:"District C2 - Street 45", src:"CAM-203", status:"warning", statusLabel:"WARNING"},
+    {time:"14:28:52", icon:checkIcon, cls:"cyan", desc:"Security Zone Cleared", loc:"District C1 - Park Area", src:"CAM-089", status:"normal", statusLabel:"NORMAL"},
+    {time:"14:26:17", icon:checkIcon, cls:"cyan", desc:"Sensor Reconnected", loc:"District A1 - Sector 3", src:"SEN-3421", status:"normal", statusLabel:"NORMAL"},
+  ];
+  document.getElementById("recentEvents").innerHTML = events.map(e=>`
+    <div class="tr">
+      <time>${e.time}</time>
+      <div class="ev-desc"><span class="${e.cls}">${e.icon}</span>${e.desc}</div>
+      <div class="ev-loc">${e.loc}</div>
+      <div class="ev-src">${e.src}</div>
+      <span class="status-badge ${e.status}">${e.statusLabel}</span>
+    </div>`).join("");
+})();
+
+/* =====================================================================
+   REAL SECURITY MAP — Leaflet + live location + OpenStreetMap Overpass
+   ===================================================================== */
+(function(){
+  const mapEl = document.getElementById("securityMap");
+  if(!mapEl) return;
+
+  function showMapError(msg){ mapEl.innerHTML = `<div class="map-fatal-error">${msg}</div>`; }
+  if(typeof L === "undefined"){ showMapError("Map library failed to load — make sure the vendor/leaflet folder sits next to index.html."); return; }
+
+  let leafletMap;
+  try{ leafletMap = L.map(mapEl, {zoomControl:false, attributionControl:true}).setView([51.5074,-0.1278], 13); }
+  catch(e){ showMapError("Could not start the map: "+e.message); return; }
+
+  let tileFailCount=0, usingFallback=false;
+  let tileLayer = L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+    attribution:"&copy; OpenStreetMap contributors &copy; CARTO", subdomains:"abcd", maxZoom:19
+  }).addTo(leafletMap);
+  tileLayer.on("tileerror", ()=>{
+    tileFailCount++;
+    if(tileFailCount>6 && !usingFallback){
+      usingFallback=true;
+      leafletMap.removeLayer(tileLayer);
+      tileLayer = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {attribution:"&copy; OpenStreetMap contributors", maxZoom:19}).addTo(leafletMap);
+    }
+  });
+
+  document.getElementById("zoomIn")?.addEventListener("click", ()=>leafletMap.zoomIn());
+  document.getElementById("zoomOut")?.addEventListener("click", ()=>leafletMap.zoomOut());
+  let currentCenter = null;
+  document.getElementById("locateBtn")?.addEventListener("click", ()=>{ if(currentCenter) leafletMap.setView(currentCenter, 13); });
+
+  const statusEl = document.getElementById("liveStatus");
+  const syncTag = document.getElementById("syncTag");
+  let lastSyncAt = null, lastCountsText = "";
+  function setStatus(text, state){
+    if(!statusEl) return;
+    statusEl.textContent = text;
+    statusEl.classList.remove("ok","err");
+    if(state) statusEl.classList.add(state);
+    if(state==="ok"){ lastCountsText = text; lastSyncAt = Date.now(); if(syncTag) syncTag.hidden = false; }
+  }
+  setInterval(()=>{
+    if(!lastSyncAt || !syncTag) return;
+    const secs = Math.floor((Date.now()-lastSyncAt)/1000);
+    const ago = secs<5 ? "just now" : secs<60 ? `${secs}s ago` : `${Math.floor(secs/60)}m ago`;
+    syncTag.textContent = `LIVE · synced ${ago}`;
+  }, 1000);
+
+  const layerGroups = { cameras:L.layerGroup(), sensors:L.layerGroup(), incidents:L.layerGroup(), police:L.layerGroup(), zones:L.layerGroup() };
+  Object.values(layerGroups).forEach(g=>g.addTo(leafletMap));
+  let heatLayer = (typeof L.heatLayer === "function") ? L.heatLayer([], {radius:32, blur:26, maxZoom:17, gradient:{0.2:"#0d6b66",0.5:"#20d7d0",0.8:"#dca73b",1:"#ff493e"}}) : null;
+  if(heatLayer) heatLayer.addTo(leafletMap);
+
+  function secIcon(cls, glyph){
+    return L.divIcon({className:"", html:`<div class="sec-marker ${cls}">${glyph}</div>`, iconSize:[26,26], iconAnchor:[13,13]});
+  }
+
+  async function fetchOverpass(center){
+    const [lat,lon] = center;
+    const q = `[out:json][timeout:25];(
+      node["man_made"="surveillance"](around:3000,${lat},${lon});
+      node["man_made"="monitoring_station"](around:3000,${lat},${lon});
+      node["amenity"="police"](around:4000,${lat},${lon});
+      node["hazard"](around:3000,${lat},${lon});
+      way["highway"="construction"](around:3000,${lat},${lon});
+      node["place"~"^(suburb|neighbourhood|quarter|town)$"](around:4500,${lat},${lon});
+    );out center 400;`;
+    const res = await fetch("https://overpass-api.de/api/interpreter", {method:"POST", body:q});
+    if(!res.ok) throw new Error("overpass failed");
+    const data = await res.json();
+    return data.elements || [];
+  }
+  function elLatLon(el){
+    if(el.lat!=null && el.lon!=null) return [el.lat, el.lon];
+    if(el.center) return [el.center.lat, el.center.lon];
+    return null;
+  }
+  function distKm(lat1,lon1,lat2,lon2){
+    const R=6371, dLat=(lat2-lat1)*Math.PI/180, dLon=(lon2-lon1)*Math.PI/180;
+    const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+    return 2*R*Math.asin(Math.sqrt(a));
+  }
+  function statusFor(score){
+    if(score>=5) return {cls:"critical", label:"CRITICAL", threat:"HIGH"};
+    if(score>=2) return {cls:"warning", label:"WARNING", threat:"MEDIUM"};
+    return {cls:"stable", label:"STABLE", threat:"LOW"};
+  }
+
+  function renderCameraList(cams){
+    const box = document.getElementById("cameraList");
+    if(!box) return;
+    if(!cams.length){ box.innerHTML = `<div class="row"><div><b class="muted">No tagged cameras found nearby</b><small class="row-status muted">OSM camera tagging is sparse in most areas</small></div></div>`; return; }
+    box.innerHTML = cams.slice(0,6).map((c,i)=>`
+      <div class="row">
+        <div><b>CAM-${201+i}</b><span class="row-status cyan"><i></i>DETECTED</span></div>
+        <div class="row-right"><strong class="cyan">●</strong></div>
+      </div>`).join("");
+  }
+  function renderZonesList(zones){
+    const box = document.getElementById("zonesList");
+    if(!box) return;
+    if(!zones.length){ box.innerHTML = `<div class="zonerow stable"><span class="muted">No named zones found nearby</span></div>`; return; }
+    box.innerHTML = zones.map(z=>`
+      <div class="zonerow ${z.st.cls}">
+        <span>${z.name.slice(0,2).toUpperCase()}</span>
+        <span class="${z.st.cls==='critical'?'red':z.st.cls==='warning'?'gold':'cyan'}">${z.st.label}</span>
+        <span>${z.st.threat}</span>
+      </div>`).join("");
+  }
+
+  let refreshing = false;
+  async function loadLiveSecurityData(center){
+    if(refreshing) return;
+    refreshing = true;
+    Object.values(layerGroups).forEach(g=>g.clearLayers());
+    setStatus("Loading live data…");
+
+    let elements = [];
+    try{ elements = await fetchOverpass(center); }
+    catch(e){ setStatus("Live data unavailable here (network/CSP blocked the request) — map tiles still work", "err"); refreshing=false; return; }
+
+    const cams=[], sensors=[], incidents=[], police=[], neighborhoods=[], heatPts=[];
+
+    elements.forEach(el=>{
+      const ll = elLatLon(el); if(!ll) return;
+      const t = el.tags || {};
+      if(t.place && /^(suburb|neighbourhood|quarter|town)$/.test(t.place) && t.name){ neighborhoods.push({name:t.name, lat:ll[0], lon:ll[1]}); return; }
+      if(t.man_made==="surveillance"){ L.marker(ll,{icon:secIcon("cam","📷")}).bindTooltip("Surveillance camera").addTo(layerGroups.cameras); cams.push(ll); heatPts.push([ll[0],ll[1],0.7]); }
+      else if(t.man_made==="monitoring_station"){ L.marker(ll,{icon:secIcon("sensor","⌁")}).bindTooltip("Monitoring sensor").addTo(layerGroups.sensors); sensors.push(ll); }
+      else if(t.amenity==="police"){ L.marker(ll,{icon:secIcon("police","🛡")}).bindTooltip("Police station").addTo(layerGroups.police); police.push(ll); }
+      else if(t.hazard || t.highway==="construction"){ L.marker(ll,{icon:secIcon("incident","⚠")}).bindTooltip("OSM-reported hazard (not a live incident feed)").addTo(layerGroups.incidents); incidents.push(ll); heatPts.push([ll[0],ll[1],1]); }
+    });
+
+    if(heatLayer) heatLayer.setLatLngs(heatPts);
+
+    const uniq = {}; neighborhoods.forEach(n=>{ if(!uniq[n.name]) uniq[n.name]=n; });
+    const picked = Object.values(uniq).slice(0,6);
+    const zonesOut = [];
+    picked.forEach(n=>{
+      const near = pts => pts.filter(p=>distKm(n.lat,n.lon,p[0],p[1])<0.8).length;
+      const nInc = near(incidents), nCam = near(cams);
+      const score = (nInc>0?4:0) + (nCam===0?1:0);
+      const st = statusFor(score);
+      const icon = L.divIcon({className:"", html:`<div class="sec-zone-tag ${st.cls==='critical'?'critical':st.cls==='warning'?'warning':''}"><strong>${n.name.slice(0,2).toUpperCase()}</strong><span>${st.label}</span></div>`, iconSize:[70,34], iconAnchor:[35,17]});
+      L.marker([n.lat,n.lon], {icon}).addTo(layerGroups.zones);
+      zonesOut.push({name:n.name, st});
+    });
+
+    renderCameraList(cams);
+    renderZonesList(zonesOut);
+
+    setStatus(`Live: ${cams.length} cameras · ${sensors.length} sensors · ${police.length} police · ${incidents.length} hazards nearby`, "ok");
+    refreshing = false;
+  }
+
+  ["cameras","sensors","incidents","police","zones"].forEach(layer=>{
+    const input = document.querySelector(`[data-layer="${layer}"]`);
+    if(!input) return;
+    input.addEventListener("change", ()=>{
+      if(input.checked) leafletMap.addLayer(layerGroups[layer]); else leafletMap.removeLayer(layerGroups[layer]);
+    });
+  });
+  const heatInput = document.querySelector('[data-layer="heatmap"]');
+  heatInput?.addEventListener("change", ()=>{
+    if(!heatLayer) return;
+    if(heatInput.checked) leafletMap.addLayer(heatLayer); else leafletMap.removeLayer(heatLayer);
+  });
+
+  function start(center){
+    currentCenter = center;
+    leafletMap.setView(center, 13);
+    loadLiveSecurityData(center);
+  }
+
+  // keep the live layers current automatically, without a page reload
+  setInterval(()=>{ if(currentCenter) loadLiveSecurityData(currentCenter); }, 90000);
+
+  // a real, continuously-updating "you are here" dot (independent of whatever
+  // location is currently being monitored on the map)
+  let youAreHereMarker = null;
+  function updateYouAreHere(lat, lon){
+    const icon = L.divIcon({className:"", html:'<div class="you-are-here"><div class="yah-pulse"></div><div class="yah-dot"></div></div>', iconSize:[16,16], iconAnchor:[8,8]});
+    if(!youAreHereMarker) youAreHereMarker = L.marker([lat,lon], {icon, zIndexOffset:1000, interactive:false}).addTo(leafletMap).bindTooltip("You are here");
+    else youAreHereMarker.setLatLng([lat,lon]);
+  }
+  if(navigator.geolocation && navigator.geolocation.watchPosition){
+    navigator.geolocation.watchPosition(
+      pos=>updateYouAreHere(pos.coords.latitude, pos.coords.longitude),
+      ()=>{},
+      {enableHighAccuracy:true, maximumAge:15000}
+    );
+  }
+
+  // monitor any other real place in the world, same live layers re-fetched for it
+  const mapSearchInput = document.getElementById("mapSearchInput");
+  const mapSuggBox = document.getElementById("mapSearchSuggestions");
+  let mapSearchDebounce = null;
+  async function geocodePlaces(q){
+    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(q)}&limit=6`;
+    const res = await fetch(url, {headers:{"Accept-Language":"en"}});
+    if(!res.ok) throw new Error("geocode failed");
+    return res.json();
+  }
+  function renderMapSuggestions(list){
+    if(!mapSuggBox) return;
+    if(!list.length){ mapSuggBox.hidden=true; mapSuggBox.innerHTML=""; return; }
+    mapSuggBox.innerHTML = list.map((item,i)=>`<div class="city-suggestion" data-i="${i}">${item.display_name}</div>`).join("");
+    mapSuggBox.hidden = false;
+    mapSuggBox.querySelectorAll(".city-suggestion").forEach((el,i)=>{
+      el.addEventListener("click", ()=>goToPlace(list[i]));
+    });
+  }
+  function goToPlace(place){
+    const lat=parseFloat(place.lat), lon=parseFloat(place.lon);
+    if(mapSuggBox) mapSuggBox.hidden=true;
+    if(mapSearchInput) mapSearchInput.value = place.display_name.split(",")[0];
+    start([lat,lon]);
+  }
+  if(mapSearchInput){
+    mapSearchInput.addEventListener("input", ()=>{
+      const q = mapSearchInput.value.trim();
+      clearTimeout(mapSearchDebounce);
+      if(q.length<3){ renderMapSuggestions([]); return; }
+      mapSearchDebounce = setTimeout(async ()=>{
+        try{ renderMapSuggestions(await geocodePlaces(q)); } catch(e){ renderMapSuggestions([]); }
+      }, 400);
+    });
+    mapSearchInput.addEventListener("keydown", async e=>{
+      if(e.key==="Enter"){
+        e.preventDefault();
+        const q = mapSearchInput.value.trim();
+        if(!q) return;
+        try{ const list = await geocodePlaces(q); if(list.length) goToPlace(list[0]); } catch(err){}
+      }
+    });
+    document.addEventListener("click", e=>{
+      if(mapSuggBox && !mapSuggBox.hidden && !mapSuggBox.contains(e.target) && e.target!==mapSearchInput) mapSuggBox.hidden=true;
+    });
+  }
+
+  if(!window.isSecureContext) setStatus("Note: location needs HTTPS or localhost — showing London instead", "err");
+
+  let started=false;
+  function startOnce(center){ if(started) return; started=true; start(center); }
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(
+      pos=>startOnce([pos.coords.latitude,pos.coords.longitude]),
+      ()=>startOnce([51.5074,-0.1278]),
+      {enableHighAccuracy:true, timeout:8000}
+    );
+    setTimeout(()=>startOnce([51.5074,-0.1278]), 8500);
+  } else {
+    startOnce([51.5074,-0.1278]);
+  }
+
+  setTimeout(()=>leafletMap.invalidateSize(), 200);
+  window.addEventListener("resize", ()=>leafletMap.invalidateSize());
+})();
+
+  </script>
+</body>
+</html>

@@ -148,8 +148,15 @@ input { font-family: inherit; }
   border-left-color: var(--nexus-orange);
 }
 
+/* Sections with no page built yet — dimmed, matching the other NEXUS pages. */
 .nav-item.disabled {
   cursor: default;
+  opacity: 0.38;
+}
+
+.nav-item.disabled:hover {
+  background: none;
+  color: var(--text-secondary);
 }
 
 .sidebar-footer {

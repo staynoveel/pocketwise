@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NEXUS — City Map</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css" />
+</head>
+<body>
+  <style>
+    *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#05080b;color:#f4f6f7;font-family:Inter,system-ui,sans-serif}body{overflow-x:hidden}.app{min-height:100vh;display:flex;background:radial-gradient(circle at 70% 35%,#0b151c 0,#05080b 48%,#030506 100%)}button,input{font:inherit}.sidebar{width:245px;flex:none;border-right:1px solid #20272d;background:linear-gradient(180deg,#070b10,#05090d);padding:20px 12px 18px;display:flex;flex-direction:column;position:relative;overflow:hidden}.brand{display:flex;align-items:center;gap:12px;padding:0 10px 24px}.brand-mark{width:42px;height:42px;border:1px solid #d6a45b;color:#d6a45b;display:grid;place-items:center;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);font-family:"Space Grotesk";font-weight:700}.brand strong{display:block;font:600 28px "Space Grotesk";letter-spacing:1px}.brand span{display:block;font-size:8px;color:#8c949a;letter-spacing:.4px;margin-top:1px}.sidebar nav{display:flex;flex-direction:column;gap:4px}.nav-item{border:0;background:transparent;color:#d4d8db;text-align:left;padding:12px 14px;border-radius:10px;display:flex;align-items:center;gap:14px;cursor:pointer;font-size:14px}.nav-item span{width:18px;color:#aeb7bd;font-size:19px;text-align:center}.nav-item:hover{background:#12181d}.nav-item{text-decoration:none}.nav-item.unbuilt{opacity:.38;cursor:default}.nav-item.unbuilt:hover{background:none}.nav-item.active{color:#ffb33f;background:linear-gradient(90deg,#261b0b,#17140f);box-shadow:inset 0 0 0 1px #a76718,0 0 18px #5d360c}.nav-item.active span{color:#ff9a20}.nav-item b{margin-left:auto;background:#d52c23;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px}.system-card{margin-top:auto;border:1px solid #202a30;border-radius:12px;padding:15px;text-align:center;background:#071017aa}.system-card small{font-size:10px;color:#b9c0c5;letter-spacing:.5px}.health-ring{width:112px;height:112px;margin:12px auto;display:grid;place-items:center;border-radius:50%;background:conic-gradient(#2acb8c 0 34%,#16b9dd 34% 72%,#ff6b1a 72% 92%,#142027 92% 100%);position:relative}.health-ring:after{content:"";position:absolute;inset:9px;background:#071017;border-radius:50%}.health-ring span{position:relative;z-index:1;font-size:27px}.system-card>strong{font-size:12px;color:#31e48e}.system-card p{font-size:10px;color:#aeb6ba}.system-card p i{display:inline-block;width:6px;height:6px;border-radius:50%;background:#36cf88;margin-right:5px}.city-silhouette{height:72px;margin:-2px -12px -18px;background:linear-gradient(transparent,#071017),repeating-linear-gradient(90deg,transparent 0 14px,#132029 15px 18px,transparent 19px 32px);opacity:.7}.main{min-width:0;flex:1}.topbar{height:77px;border-bottom:1px solid #20272d;display:flex;align-items:center;padding:0 20px;gap:20px;background:#05090db8}.menu-btn{background:none;border:0;color:#d9dddf;font-size:22px;cursor:pointer}.page-title{display:flex;align-items:baseline;gap:12px;border-left:1px solid #222b31;padding-left:22px}.page-title h1{font:600 22px "Space Grotesk";margin:0;letter-spacing:.5px}.page-title span{font-size:11px;color:#9ba3a8}.top-status{margin-left:auto;color:#fff;font-size:13px}.top-status i,.feed-title i{display:inline-block;width:8px;height:8px;border-radius:50%;background:#37d47d;box-shadow:0 0 12px #37d47d;margin-right:7px}.clock{border-left:1px solid #20272d;padding-left:20px;display:flex;flex-direction:column;gap:2px}.clock strong{font-size:14px}.clock span{font-size:10px;color:#929ba0}.connected{font-size:11px;color:#aeb7bb;border-left:1px solid #20272d;padding-left:20px}.bell{position:relative;background:none;border:0;color:#e4e7e8;font-size:22px}.bell b{position:absolute;top:-5px;right:-5px;background:#df342a;border-radius:10px;padding:1px 5px;font-size:9px}.operator{display:flex;align-items:center;gap:9px;border:1px solid #222c32;border-radius:11px;padding:6px 10px}.avatar{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#2c261e;border:1px solid #695133}.operator strong,.operator span{display:block;font-size:11px}.operator div span{font-size:9px;color:#929ba0;margin-top:2px}.operator>span{margin-left:14px}.workspace{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:10px;padding:10px}.map-wrap{min-width:0}.map{height:calc(100vh - 167px);min-height:650px;border:1px solid #26333b;border-radius:10px;position:relative;overflow:hidden;background:radial-gradient(circle at 55% 45%,#0d2631 0,#06141d 38%,#031019 80%);box-shadow:inset 0 0 70px #000}.roads{position:absolute;inset:0;width:100%;height:100%;opacity:.8}.roads path{fill:none;stroke:#27414b;stroke-width:2}.roads .hot{stroke:#ff4b2f;stroke-width:4}.roads .hot2{stroke:#ff8a22;stroke-width:3}.roads .grid path{stroke:#1a3440;stroke-width:1;opacity:.8}.search{position:absolute;z-index:5;top:10px;left:16px;width:360px;height:41px;border:1px solid #33424b;background:#081017e8;border-radius:10px;display:flex;align-items:center;padding:0 12px;gap:9px}.search span{font-size:22px;color:#c7ced1}.search input{background:none;border:0;outline:0;color:#fff;width:100%;font-size:12px}.search button{background:none;border:0;color:#a8b1b5}.panel{border:1px solid #29353d;border-radius:11px;background:linear-gradient(180deg,#091219ee,#060c11e8);box-shadow:0 10px 30px #0007}.layers{position:absolute;z-index:5;top:70px;left:16px;width:160px;padding:10px}.panel-title{font-size:12px;letter-spacing:.2px;display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid #253039}.panel-title button{border:0;background:none;color:#bbc2c5}.layers label{display:flex;align-items:center;gap:7px;font-size:11px;padding:7px 0;color:#d6dbdd}.layers input{accent-color:#19c8c1}.layers em{font-style:normal;width:15px}.clear{width:100%;border:1px solid #36444c;background:#071016;color:#43d9d0;border-radius:8px;padding:7px;font-size:10px}.c-green{color:#42d98b}.c-cyan{color:#28d6d5}.c-yellow{color:#ffbd3e}.c-purple{color:#b98cff}.c-red{color:#ff5046}.district{position:absolute;display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-50%);text-shadow:0 0 14px currentColor}.district strong{font:500 20px "Space Grotesk"}.district span{font-size:10px;font-weight:600;margin-top:4px}.district:not(.warning):not(.critical):not(.high){color:#48e3c7}.warning{color:#ffc132}.high{color:#ff9d23}.critical{color:#ff513f}.d-a1{left:43%;top:18%}.d-a2{left:65%;top:18%}.d-b1{left:31%;top:42%}.d-b2{left:51%;top:41%}.d-b4{left:79%;top:42%}.d-c3{left:60%;top:62%}.d-d1{left:43%;top:70%}.d-d2{left:70%;top:76%}.marker{position:absolute;width:29px;height:29px;border-radius:50%;border:1px solid currentColor;background:#07141bd9;box-shadow:0 0 18px currentColor;color:#28ddd0;cursor:pointer}.marker.incident{color:#ff4b43}.marker.power{color:#ffad2f}.marker.metro{color:#b986ff}.marker.security{color:#36ddd0}.marker.sensor{color:#45e995}.map-controls{position:absolute;z-index:5;left:18px;bottom:108px;display:flex;flex-direction:column;border:1px solid #34434b;border-radius:9px;overflow:hidden;background:#071016dd}.map-controls button{width:38px;height:38px;background:#071016dd;color:#dbe0e2;border:0;border-bottom:1px solid #29353b;cursor:pointer}.legend{position:absolute;z-index:5;bottom:10px;left:16px;right:16px;height:45px;border:1px solid #2a3941;border-radius:9px;background:#071016e8;display:flex;align-items:center;justify-content:space-around;font-size:10px;color:#cbd1d4}.live-feed{height:89px;margin-top:10px;border:1px solid #26333b;border-radius:10px;background:#071017;display:flex;align-items:center;gap:16px;padding:12px}.feed-title{font-size:11px;white-space:nowrap}.feed-title i{background:#ff3d34;box-shadow:none}.feed-items{display:flex;gap:0;overflow:hidden;flex:1}.feed-items span{font-size:10px;padding:0 18px;border-right:1px solid #2a343a;white-space:nowrap}.feed-items small{display:block;color:#8e999f;margin-top:4px}.live-feed>button{background:none;border:0;color:#b9c2c6;font-size:10px;white-space:nowrap}.right-panel{display:flex;flex-direction:column;gap:10px}.right-panel .panel{padding:13px}.critical-tag{background:#3a1010;color:#ff625a;border:1px solid #5e211e;border-radius:6px;padding:6px 9px;font-size:9px}.metric{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid #1e2930;font-size:11px}.metric>span{display:flex;gap:9px;align-items:center}.metric small{display:block;color:#9aa3a8;text-align:right;font-size:9px;margin-left:18px}.metric strong{font-size:13px}.red{color:#ff4c43!important}.green{color:#37df9b!important}.gold-btn{width:100%;margin-top:12px;background:linear-gradient(180deg,#1b160e,#0d0d0b);border:1px solid #c78420;color:#ffc35b;border-radius:8px;padding:9px;font-size:10px;cursor:pointer}.critical-zones .panel-title a{color:#f1b04b;font-size:9px}.zone{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid #202a30}.zone:last-child{border:0}.zone>b{width:48px;height:40px;display:grid;place-items:center;border:1px solid #ff382d;color:#ff4b43;border-radius:7px;font-size:16px}.zone:nth-child(3)>b,.zone:nth-child(4)>b{border-color:#b47a20;color:#ffb72e}.zone span strong{display:block;font-size:10px;color:#ff5148}.zone:nth-child(3) span strong{color:#ffb72e}.zone small{display:block;color:#909a9f;font-size:8px;margin-top:4px}.sensor-grid{display:grid;grid-template-columns:repeat(3,1fr);margin-top:10px}.sensor-grid div{text-align:center;border-right:1px solid #202b31}.sensor-grid div:last-child{border:0}.sensor-grid strong{display:block;font-size:22px;color:#19d8cf}.sensor-grid div:nth-child(2) strong{color:#ffb32e}.sensor-grid div:nth-child(3) strong{color:#ff443b}.sensor-grid small{font-size:8px;color:#9ba4a9}.quality{display:flex;align-items:center;gap:8px;padding-top:13px}.quality strong{font-size:20px;color:#1fd4d2}.quality span{font-size:9px;color:#9aa3a8}.quality i{height:5px;background:#1b353b;border-radius:5px;flex:1;overflow:hidden}.quality i b{display:block;height:100%;width:96%;background:#1dc8c6}.sync{border-top:1px solid #202b31;margin-top:12px;padding-top:10px;font-size:9px;color:#899399}.sync span{float:right;color:#44df92}.modal{position:fixed;inset:0;background:#0009;backdrop-filter:blur(5px);display:none;place-items:center;z-index:100}.modal.show{display:grid}.modal-card{width:min(430px,calc(100% - 30px));border:1px solid #3b454c;border-radius:14px;background:#0a1117;padding:25px;position:relative;box-shadow:0 20px 80px #000}.modal-card h2{font:600 25px "Space Grotesk";display:inline-block;margin:0 12px 15px 0}.modal-card p{color:#9ba5aa;font-size:12px;line-height:1.7}.close{position:absolute;right:15px;top:12px;background:none;border:0;color:#aeb7bc;font-size:24px}.modal-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}.modal-stats div{padding:15px;border:1px solid #26333a;border-radius:8px;color:#aeb7bc}.modal-stats b{display:block;color:#fff;font-size:20px;margin-top:5px}@media(max-width:1200px){.sidebar{width:210px}.workspace{grid-template-columns:minmax(0,1fr) 270px}.connected{display:none}.legend{font-size:8px}.feed-items span{padding:0 9px}}@media(max-width:1000px){.sidebar{width:72px;padding:16px 8px}.brand div:not(.brand-mark),.nav-item{font-size:0}.brand{justify-content:center;padding:0 0 20px}.brand-mark{width:40px}.nav-item{justify-content:center;padding:12px 6px}.nav-item span{font-size:20px}.nav-item b{position:absolute;margin-left:28px}.system-card{padding:8px}.system-card small,.system-card strong,.system-card p{display:none}.health-ring{width:52px;height:52px;margin:8px auto}.health-ring:after{inset:5px}.health-ring span{font-size:13px}.workspace{grid-template-columns:1fr}.right-panel{display:grid;grid-template-columns:1fr 1fr 1fr}.right-panel .panel{min-width:0}.map{min-height:570px;height:calc(100vh - 230px)}.topbar{gap:12px;padding:0 12px}.operator div:not(.avatar),.operator>span{display:none}.search{width:300px}}@media(max-width:767px){.app{display:block}.sidebar{position:fixed;z-index:80;left:-245px;top:0;bottom:0;width:245px;transition:.25s}.sidebar.open{left:0}.brand div:not(.brand-mark),.nav-item{font-size:14px}.brand{justify-content:flex-start;padding:0 10px 24px}.nav-item{justify-content:flex-start;padding:12px 14px}.system-card{padding:15px}.system-card small,.system-card strong,.system-card p{display:block}.health-ring{width:112px;height:112px}.main{width:100%}.topbar{height:65px}.page-title{padding-left:8px}.page-title h1{font-size:16px}.page-title span,.connected,.clock,.operator{display:none}.top-status{margin-left:auto}.workspace{padding:7px;display:block}.map{height:66vh;min-height:450px}.search{left:8px;right:8px;width:auto}.layers{left:8px;top:60px;width:150px}.legend{display:none}.map-controls{left:auto;right:8px;bottom:18px}.right-panel{display:block;margin-top:7px}.right-panel .panel{margin-bottom:7px}.live-feed{height:auto;min-height:65px}.feed-items span:nth-child(n+3){display:none}.live-feed>button{display:none}.live-feed{gap:8px;padding:9px}.feed-title{font-size:9px}.district strong{font-size:15px}.district span{font-size:8px}.brand strong{font-size:25px}}
+/* PIXEL-ACCURATE REFERENCE TUNING */
+:root{--bg:#03080d;--panel:#071119;--line:#1b2a33;--muted:#8b969d;--cyan:#20d7d0;--gold:#e4a52f;--red:#ff493e}
+body{background:#02070b}
+.sidebar{width:245px;background:linear-gradient(180deg,#04090f 0%,#03070b 100%);border-right-color:#17232b}
+.brand{height:60px;padding:0 13px 24px}
+.brand-mark{border-color:#d8b26b;color:#d8b26b;background:#05090d}
+.nav-item{height:48px;padding-left:15px;border-radius:10px}
+.nav-item.active{background:linear-gradient(90deg,#261b0c,#11151a);box-shadow:inset 0 0 0 1px #8c5b19,0 0 20px #4a2b08}
+.system-card{margin:16px 0 0;height:225px;padding-top:15px;background:#050d13;border-color:#172932}
+.main{background:#02070b}
+.topbar{height:77px;padding:0 16px;border-bottom-color:#18262f}
+.workspace{padding:0 10px 10px;gap:10px}
+.map-wrap{padding-top:0}
+.map{height:calc(100vh - 167px);min-height:700px;border-radius:0 0 8px 8px;border-color:#182a34;background:
+radial-gradient(ellipse at 53% 45%,#0a2733 0%,#061722 36%,#031018 70%,#02080d 100%)}
+.map:before{content:"";position:absolute;inset:0;background-image:
+linear-gradient(rgba(27,62,73,.13) 1px,transparent 1px),
+linear-gradient(90deg,rgba(27,62,73,.13) 1px,transparent 1px);
+background-size:42px 42px;opacity:.35}
+.search{top:10px;left:18px;width:360px;height:41px}
+.layers{top:70px;left:18px;width:160px}
+.district strong{font-size:20px}
+.d-a1{left:43%;top:18%}.d-a2{left:65%;top:18%}.d-b1{left:31%;top:42%}.d-b2{left:51%;top:41%}.d-b4{left:79%;top:42%}.d-c3{left:60%;top:62%}.d-d1{left:43%;top:70%}.d-d2{left:70%;top:76%}
+.right-panel{width:300px}
+.right-panel .panel{border-radius:10px}
+.live-feed{margin-top:10px;border-radius:9px}
+.marker{font-size:12px}
+.roads{opacity:.95}
+.roads path{stroke:#23414b;stroke-width:2}
+.roads .hot{stroke:#ff4c35;filter:drop-shadow(0 0 4px #ff4c35)}
+.roads .hot2{stroke:#ff9c2d}
+@media(max-width:1000px){.sidebar{width:72px}.workspace{padding:0 7px 7px}.right-panel{width:auto}}
+@media(max-width:767px){.workspace{padding:7px}.map{min-height:520px}}
+
+/* --- Reference-detail pass --- */
+.map{isolation:isolate}
+.map:after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 50%,transparent 35%,rgba(0,0,0,.32) 100%);z-index:1}
+.search,.layers,.district,.markers,.map-controls,.legend,.map-hud{z-index:5}
+.layers{cursor:default;touch-action:none;user-select:none}
+.layers.dragging{cursor:grabbing;box-shadow:0 18px 45px #000b,0 0 0 1px #9a6a22}
+.drag-handle{cursor:grab}
+.drag-handle:active{cursor:grabbing}
+.layer-actions{display:flex;gap:2px}
+.layer-actions button{padding:0 4px}
+.map-hud{position:absolute;right:16px;top:16px;border:1px solid #1d313b;background:#061017c9;border-radius:7px;padding:7px 9px;display:flex;gap:12px;color:#718087;font-size:8px;letter-spacing:.6px}
+.map-hud span+span{border-left:1px solid #203039;padding-left:12px}
+.map-wrap{position:relative}
+
+@media(max-width:767px){
+ .map-hud{display:none}
+ .layers{max-width:calc(100% - 24px)}
+}
+
+/* --- Real district names (added; purely additive, nothing above is overridden) --- */
+.district .place-name{display:block;font-size:8px;font-weight:500;color:#8b969d;margin-top:3px;letter-spacing:.2px;text-shadow:none;max-width:110px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:767px){.district .place-name{display:none}}
+
+/* --- Colors for the new real marker categories (added; additive only) --- */
+.marker.traffic{color:#ffdd57}
+.marker.water{color:#28c7ff}
+.marker.air{color:#c98cff}
+
+/* --- Real Google-Maps-style map: Leaflet container + new UI it needs (added) --- */
+#leafletMap{position:absolute;inset:0;width:100%;height:100%;border-radius:inherit}
+.leaflet-container{background:#06141d !important;font-family:Inter,system-ui,sans-serif}
+.leaflet-control-attribution{background:#071016cc !important;color:#718087 !important;font-size:8px !important}
+.leaflet-control-attribution a{color:#8b969d !important}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#0a1117;color:#e7ecee;border:1px solid #263039}
+.leaflet-tooltip{background:#0a1117e6;color:#e7ecee;border:1px solid #29353d;font-size:10px;border-radius:6px}
+
+.city-suggestions{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:6;background:#081017f5;border:1px solid #33424b;border-radius:10px;overflow:hidden;box-shadow:0 12px 30px #000a}
+.city-suggestion{padding:9px 12px;font-size:11px;color:#d6dbdd;cursor:pointer;border-bottom:1px solid #1c2830}
+.city-suggestion:last-child{border-bottom:0}
+.city-suggestion:hover{background:#122029;color:#fff}
+
+.city-pin{font-size:26px;line-height:1;filter:drop-shadow(0 3px 6px #000c)}
+
+.geo-tag{display:flex;flex-direction:column;align-items:center;transform:translateY(-6px);text-shadow:0 0 14px currentColor;color:#48e3c7;pointer-events:auto;cursor:pointer}
+.geo-tag strong{font:500 13px "Space Grotesk";white-space:nowrap;max-width:130px;overflow:hidden;text-overflow:ellipsis}
+.geo-tag span{font-size:8px;font-weight:600;margin-top:2px;letter-spacing:.4px}
+.geo-tag.warning{color:#ffc132}
+.geo-tag.high{color:#ff9d23}
+.geo-tag.critical{color:#ff513f}
+
+@media(max-width:767px){
+  .city-suggestions{max-height:50vh;overflow-y:auto}
+  .geo-tag strong{font-size:11px;max-width:90px}
+}
+
+/* --- live-status line in the layers panel (added) --- */
+.live-status{font-size:9px;color:#8b969d;padding:0 4px 8px;letter-spacing:.2px}
+.live-status.ok{color:#48e3c7}
+.live-status.err{color:#ff9d7a}
+
+/* --- visible fallback message if the map genuinely fails to start (added) --- */
+.map-fatal-error{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  text-align:center;padding:30px;color:#ff9d7a;font-size:12px;line-height:1.6;
+  background:#0a1117;
+}
+
+  </style>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark">N</div>
+        <div><strong>NEXUS</strong><span>CRISIS COMMAND CENTER</span></div>
+      </div>
+
+      <nav>
+        <a class="nav-item" href="dashboard.html"><span>▦</span>Dashboard</a>
+        <a class="nav-item active" href="city-map.html"><span>◇</span>City Map</a>
+        <a class="nav-item" href="traffic.html"><span>⌘</span>Traffic</a>
+        <a class="nav-item" href="power-grid.html"><span>ϟ</span>Power Grid</a>
+        <a class="nav-item" href="air-quality.html"><span>♨</span>Air Quality</a>
+        <a class="nav-item unbuilt" title="No page built for this section yet"><span>◯</span>Water System</a>
+        <a class="nav-item unbuilt" title="No page built for this section yet"><span>▤</span>Metro & Transit</a>
+        <a class="nav-item" href="security.html"><span>♢</span>Security</a>
+        <a class="nav-item" href="alerts.html"><span>♧</span>Alerts & Incidents <b>14</b></a>
+        <a class="nav-item unbuilt" title="No page built for this section yet"><span>▤</span>Reports</a>
+        <a class="nav-item" href="settings.html"><span>⚙</span>Settings</a>
+      </nav>
+
+      <div class="system-card">
+        <small>SYSTEM STATUS</small>
+        <div class="health-ring"><span>92%</span></div>
+        <strong>OPERATIONAL</strong>
+        <p><i></i> All Systems Running</p>
+      </div>
+
+      <div class="city-silhouette"></div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="menu-btn" id="menuBtn">☰</button>
+        <div class="page-title"><h1>CITY MAP</h1><span>Real-Time City Overview</span></div>
+        <div class="top-status"><i></i> LIVE</div>
+        <div class="clock"><strong id="clock">14:35:42</strong><span id="date">May 25, 2024</span></div>
+        <div class="connected">⌁ NEXUS CONNECTED</div>
+        <button class="bell">♧<b>12</b></button>
+        <div class="operator"><div class="avatar">◉</div><div><strong>Operator 01</strong><span>Level 7</span></div><span>⌄</span></div>
+      </header>
+
+      <section class="workspace">
+        <div class="map-wrap">
+          <div class="search">
+            <span>⌕</span><input id="searchInput" placeholder="Search any city in the world..." autocomplete="off" /><button>☷</button>
+            <div id="citySuggestions" class="city-suggestions" hidden></div>
+          </div>
+
+          <div class="layers panel">
+            <div class="panel-title drag-handle" title="Drag to move">MAP LAYERS <span class="layer-actions"><button id="layerReset" title="Reset position">↺</button><button id="layerToggle" title="Collapse">⌃</button></span></div>
+            <div id="layerList">
+              <label><input type="checkbox" checked data-layer="traffic"> <em class="c-green">▣</em> Traffic</label>
+              <label><input type="checkbox" checked data-layer="air"> <em class="c-cyan">♨</em> Air Quality</label>
+              <label><input type="checkbox" checked data-layer="power"> <em class="c-yellow">ϟ</em> Power Grid</label>
+              <label><input type="checkbox" checked data-layer="water"> <em class="c-cyan">◯</em> Water System</label>
+              <label><input type="checkbox" checked data-layer="metro"> <em class="c-purple">▤</em> Metro & Transit</label>
+              <label><input type="checkbox" checked data-layer="security"> <em class="c-cyan">▣</em> Security Cameras</label>
+              <label><input type="checkbox" checked data-layer="sensors"> <em class="c-green">⌁</em> Sensors</label>
+              <label><input type="checkbox" checked data-layer="incidents"> <em class="c-red">♧</em> Incidents</label>
+            </div>
+            <button class="clear" id="clearLayers">Clear All</button>
+          </div>
+
+          <div class="map" id="map">
+            <div id="leafletMap"></div>
+
+            <div class="map-controls">
+              <button id="zoomIn">+</button><button id="zoomOut">−</button><button id="reset">⌾</button><button>⛶</button><button>▱</button>
+            </div>
+
+            <div class="map-hud"><span id="hudLat">LAT —</span><span id="hudLon">LON —</span><span id="hudZoom">ZOOM —</span></div><div class="legend">
+              <span>🚗 Accident</span><span>ϟ Power Failure</span><span>♨ AQI Critical</span><span>◯ Water Leak</span><span>▤ Metro Issue</span><span>♢ Security Incident</span><span>⌁ Sensor Failure</span>
+            </div>
+          </div>
+
+          <div class="live-feed">
+            <div class="feed-title"><i></i> LIVE FEED</div>
+            <div class="feed-items" id="feed">
+              <span>14:35:01　🚗 Accident Reported <small>District C3</small></span>
+              <span>14:35:05　ϟ Power Node Recovered <small>District D1</small></span>
+              <span>14:35:10　♨ AQI Updated <small>District B4</small></span>
+              <span>14:35:15　🚘 Traffic Congestion <small>District A2</small></span>
+              <span>14:35:20　⌁ Sensor Offline <small>District B2</small></span>
+            </div>
+            <button>View Full Feed →</button>
+          </div>
+        </div>
+
+        <aside class="right-panel">
+          <section class="panel district-panel">
+            <div class="panel-title"><strong>DISTRICT B4</strong><span class="critical-tag">CRITICAL</span></div>
+            <div class="metric"><span>🚗 Traffic <small>92%<br>Heavy Traffic</small></span><strong>92%</strong></div>
+            <div class="metric"><span>☁ Air Quality (AQI) <small class="red">23%<br>Critical</small></span><strong>250</strong></div>
+            <div class="metric"><span>ϟ Power Grid <small class="red">21%<br>Critical</small></span><strong>21%</strong></div>
+            <div class="metric"><span>◯ Water System <small class="green">⌁<br>Stable</small></span><strong>91%</strong></div>
+            <div class="metric"><span>▣ Security Cameras <small class="green">⌁<br>Online</small></span><strong>8 / 10</strong></div>
+            <div class="metric"><span>♧ Active Incidents</span><strong>3</strong></div>
+            <button class="gold-btn" id="detailsBtn">VIEW DISTRICT DETAILS</button>
+          </section>
+
+          <section class="panel critical-zones">
+            <div class="panel-title">CRITICAL ZONES <a>View All</a></div>
+            <div class="zone"><b>B4</b><span><strong>Critical</strong><small>AQI 250　•　Power 21%　•　Traffic 92%</small></span></div>
+            <div class="zone"><b>C3</b><span><strong>High Risk</strong><small>Accident　•　Traffic 85%</small></span></div>
+            <div class="zone"><b>D1</b><span><strong>Warning</strong><small>Power Drop　•　Power 42%</small></span></div>
+          </section>
+
+          <section class="panel sensors">
+            <div class="panel-title">⌁ SENSOR NETWORK</div>
+            <div class="sensor-grid">
+              <div><strong>982</strong><small>Active</small></div>
+              <div><strong>12</strong><small>Delayed</small></div>
+              <div><strong>4</strong><small>Corrupted</small></div>
+            </div>
+            <div class="quality"><strong>96%</strong><span>Data Quality</span><i><b></b></i></div>
+            <div class="sync">Last Sync: 14:35:42 <span>LIVE ●</span></div>
+          </section>
+        </aside>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal" id="modal">
+    <div class="modal-card">
+      <button class="close" id="closeModal">×</button>
+      <h2>District B4</h2>
+      <span class="critical-tag">CRITICAL</span>
+      <p>High-risk district requiring immediate operator attention.</p>
+      <div class="modal-stats"><div>Traffic <b>92%</b></div><div>AQI <b>250</b></div><div>Power <b>21%</b></div><div>Incidents <b>3</b></div></div>
+    </div>
+  </div>
+
+  <script src="vendor/leaflet/leaflet.js"></script>
+  <script>
+    const clockEl=document.getElementById("clock"),dateEl=document.getElementById("date");
+function updateClock(){const d=new Date();clockEl.textContent=d.toLocaleTimeString("en-US",{hour12:false});dateEl.textContent=d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}
+updateClock();setInterval(updateClock,1000);
+
+const sidebar=document.getElementById("sidebar");
+document.getElementById("menuBtn").onclick=()=>sidebar.classList.toggle("open");
+
+document.querySelectorAll(".district").forEach(el=>{
+  el.addEventListener("click",()=>{
+    document.querySelector(".district-panel strong").textContent="DISTRICT "+el.dataset.district;
+    document.querySelector(".district-panel .critical-tag").textContent=el.classList.contains("critical")?"CRITICAL":el.classList.contains("high")?"HIGH RISK":"WARNING";
+  });
+});
+
+document.getElementById("detailsBtn").onclick=()=>document.getElementById("modal").classList.add("show");
+document.getElementById("closeModal").onclick=()=>document.getElementById("modal").classList.remove("show");
+document.getElementById("modal").onclick=e=>{if(e.target.id==="modal")e.currentTarget.classList.remove("show")};
+
+document.getElementById("layerToggle").onclick=()=>{
+  const list=document.getElementById("layerList");list.hidden=!list.hidden;
+};
+document.getElementById("clearLayers").onclick=()=>{
+  document.querySelectorAll("[data-layer]").forEach(x=>x.checked=false);
+};
+/* The old per-marker display:none toggler used to live here. It's removed
+   because it could conflict with the real Leaflet layer groups below
+   (toggling a layer off/on could leave a stale display:none on a reused
+   marker element). Layer visibility is now handled entirely by adding/
+   removing real Leaflet layer groups — see "REAL GOOGLE-MAPS-STYLE MAP". */
+
+/* Zoom controls (#zoomIn/#zoomOut/#reset) are now wired to the real Leaflet
+   map instance instead of scaling the old decorative .roads SVG — see the
+   "REAL GOOGLE-MAPS-STYLE MAP" section below. */
+
+/* The search box now looks up real cities worldwide (autocomplete + fly-to)
+   instead of animating the old fixed A1..D2 district tiles — see the
+   "REAL GOOGLE-MAPS-STYLE MAP" section below. */
+
+const feed=document.getElementById("feed");
+setInterval(()=>{
+  const now=new Date().toLocaleTimeString("en-US",{hour12:false});
+  const items=[
+    ["🚗","Traffic Update","District C3"],
+    ["ϟ","Power Node Checked","District D1"],
+    ["♨","AQI Updated","District B4"],
+    ["⌁","Sensor Sync","District B2"]
+  ];
+  const item=items[Math.floor(Math.random()*items.length)];
+  const span=document.createElement("span");
+  span.innerHTML=`${now}　${item[0]} ${item[1]} <small>${item[2]}</small>`;
+  feed.prepend(span);
+  while(feed.children.length>5)feed.lastElementChild.remove();
+},5000);
+
+/* --- Draggable MAP LAYERS widget --- */
+(function(){
+  const panel = document.querySelector(".layers");
+  const handle = document.querySelector(".drag-handle");
+  const reset = document.getElementById("layerReset");
+  const map = document.getElementById("map");
+  if(!panel || !handle || !map) return;
+
+  let dragging = false, sx=0, sy=0, ox=0, oy=0;
+  const key = "nexus-map-layers-position-v1";
+
+  function applySaved(){
+    try{
+      const saved = JSON.parse(localStorage.getItem(key));
+      if(saved && Number.isFinite(saved.x) && Number.isFinite(saved.y)){
+        panel.style.left = saved.x + "px";
+        panel.style.top = saved.y + "px";
+        panel.dataset.moved = "1";
+      }
+    }catch(e){}
+  }
+  function clamp(x,y){
+    const r = map.getBoundingClientRect();
+    const p = panel.getBoundingClientRect();
+    return {
+      x: Math.max(8, Math.min(x, r.width-p.width-8)),
+      y: Math.max(58, Math.min(y, r.height-p.height-58))
+    };
+  }
+
+  handle.addEventListener("pointerdown", e=>{
+    if(e.target.closest("button")) return;
+    const r = panel.getBoundingClientRect();
+    const mr = map.getBoundingClientRect();
+    dragging=true;
+    sx=e.clientX; sy=e.clientY;
+    ox=r.left-mr.left; oy=r.top-mr.top;
+    panel.classList.add("dragging");
+    handle.setPointerCapture?.(e.pointerId);
+    e.preventDefault();
+  });
+
+  handle.addEventListener("pointermove", e=>{
+    if(!dragging) return;
+    const p=clamp(ox+e.clientX-sx,oy+e.clientY-sy);
+    panel.style.left=p.x+"px";
+    panel.style.top=p.y+"px";
+    panel.dataset.moved="1";
+  });
+
+  function stop(){
+    if(!dragging) return;
+    dragging=false;
+    panel.classList.remove("dragging");
+    try{
+      localStorage.setItem(key, JSON.stringify({x:parseFloat(panel.style.left),y:parseFloat(panel.style.top)}));
+    }catch(e){}
+  }
+  handle.addEventListener("pointerup",stop);
+  handle.addEventListener("pointercancel",stop);
+
+  reset?.addEventListener("click",()=>{
+    panel.style.left="18px";
+    panel.style.top="70px";
+    panel.dataset.moved="";
+    try{localStorage.removeItem(key)}catch(e){}
+  });
+  applySaved();
+})();
+
+/* The random traffic/AQI number simulator is now replaced by the real,
+   live per-neighbourhood data in the "REAL GOOGLE-MAPS-STYLE MAP" section
+   below — leaving both running would make real numbers flicker with fake
+   ones every few seconds, so this old simulator is disabled. */
+
+/* ================================================================
+   REAL GOOGLE-MAPS-STYLE MAP  (added — appended, replaces only the
+   two old blocks above that were removed for the reasons noted there)
+
+   - real pannable/zoomable map (Leaflet + OpenStreetMap/CARTO tiles)
+   - search ANY city in the world: autocomplete + fly-to + pin drop
+     (OpenStreetMap Nominatim — free, no key)
+   - live layers from real, free, keyless sources:
+       traffic signals, power substations, metro+bus stops, surveillance
+       cameras, monitoring sensors, water points  -> OSM Overpass API
+       live air quality reading                    -> Open-Meteo API
+   - real neighbourhoods for whichever city is on screen, colour-coded
+     from real nearby data (not fixed/fake)
+
+   Honest limitation: there is no free, keyless, truly LIVE traffic-
+   accident feed anywhere. The "Incidents" layer uses OSM's own
+   hazard/roadwork tags as the closest real proxy — it is real data,
+   but not a live 911/999-style incident feed. A live feed would need
+   a paid provider (e.g. TomTom/HERE) and an API key.
+================================================================= */
+(function(){
+  const mapEl = document.getElementById("leafletMap");
+  if(!mapEl) return;
+
+  function showMapError(msg){
+    mapEl.innerHTML = `<div class="map-fatal-error">${msg}</div>`;
+  }
+
+  if(typeof L === "undefined"){
+    showMapError("Map library failed to load (vendor/leaflet/leaflet.js is missing or blocked). Make sure the vendor/leaflet folder sits next to index.html.");
+    return;
+  }
+
+  let leafletMap;
+  try{
+    leafletMap = L.map(mapEl, {zoomControl:false, attributionControl:true}).setView([51.5074,-0.1278], 12);
+  }catch(e){
+    showMapError("Could not start the map: " + e.message);
+    return;
+  }
+
+  // primary dark tiles, with an automatic fallback to standard OSM tiles
+  // if the primary provider is blocked by a network/firewall
+  let tileFailCount = 0;
+  let usingFallbackTiles = false;
+  let tileLayer = L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+    attribution:"&copy; OpenStreetMap contributors &copy; CARTO",
+    subdomains:"abcd", maxZoom:19
+  }).addTo(leafletMap);
+
+  tileLayer.on("tileerror", ()=>{
+    tileFailCount++;
+    if(tileFailCount>6 && !usingFallbackTiles){
+      usingFallbackTiles = true;
+      leafletMap.removeLayer(tileLayer);
+      tileLayer = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution:"&copy; OpenStreetMap contributors", maxZoom:19
+      }).addTo(leafletMap);
+    }
+  });
+
+  let currentCityCenter = null;
+  let cityPin = null;
+  let lastAQI = null;
+
+  function setCityPin(lat, lon, label){
+    if(cityPin) leafletMap.removeLayer(cityPin);
+    const icon = L.divIcon({className:"", html:'<div class="city-pin">📍</div>', iconSize:[30,34], iconAnchor:[15,32]});
+    cityPin = L.marker([lat,lon], {icon}).addTo(leafletMap);
+    if(label) cityPin.bindTooltip(label, {direction:"top"});
+  }
+
+  /* ---------- HUD ---------- */
+  function updateHUD(){
+    const c = leafletMap.getCenter();
+    const latEl = document.getElementById("hudLat");
+    const lonEl = document.getElementById("hudLon");
+    const zEl = document.getElementById("hudZoom");
+    if(latEl) latEl.textContent = `LAT ${c.lat.toFixed(4)}°`;
+    if(lonEl) lonEl.textContent = `LON ${c.lng.toFixed(4)}°`;
+    if(zEl) zEl.textContent = `ZOOM ${leafletMap.getZoom().toFixed(2)}×`;
+  }
+  leafletMap.on("move zoom", updateHUD);
+  updateHUD();
+
+  document.getElementById("zoomIn")?.addEventListener("click", ()=>leafletMap.zoomIn());
+  document.getElementById("zoomOut")?.addEventListener("click", ()=>leafletMap.zoomOut());
+  document.getElementById("reset")?.addEventListener("click", ()=>{ if(currentCityCenter) leafletMap.setView(currentCityCenter, 12); });
+
+  /* ---------- real city search (Nominatim geocoding, like Google Maps' box) ---------- */
+  const searchInput = document.getElementById("searchInput");
+  const suggBox = document.getElementById("citySuggestions");
+  let searchDebounce = null;
+
+  async function geocodeCities(q){
+    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(q)}&limit=6`;
+    const res = await fetch(url, {headers:{"Accept-Language":"en"}});
+    if(!res.ok) throw new Error("geocode failed");
+    return res.json();
+  }
+
+  function renderSuggestions(list){
+    if(!suggBox) return;
+    if(!list.length){ suggBox.hidden = true; suggBox.innerHTML = ""; return; }
+    suggBox.innerHTML = list.map((item,i)=>`<div class="city-suggestion" data-i="${i}">${item.display_name}</div>`).join("");
+    suggBox.hidden = false;
+    suggBox.querySelectorAll(".city-suggestion").forEach((el,i)=>{
+      el.addEventListener("click", ()=> goToCity(list[i]));
+    });
+  }
+
+  function goToCity(place){
+    const lat = parseFloat(place.lat), lon = parseFloat(place.lon);
+    currentCityCenter = [lat, lon];
+    leafletMap.setView(currentCityCenter, 12);
+    setCityPin(lat, lon, place.display_name.split(",")[0]);
+    if(suggBox) suggBox.hidden = true;
+    if(searchInput) searchInput.value = place.display_name.split(",")[0];
+    loadCityLiveData(currentCityCenter);
+  }
+
+  if(searchInput){
+    searchInput.addEventListener("input", ()=>{
+      const q = searchInput.value.trim();
+      clearTimeout(searchDebounce);
+      if(q.length<3){ renderSuggestions([]); return; }
+      searchDebounce = setTimeout(async ()=>{
+        try{ renderSuggestions(await geocodeCities(q)); }
+        catch(e){ renderSuggestions([]); }
+      }, 400);
+    });
+    searchInput.addEventListener("keydown", async e=>{
+      if(e.key==="Enter"){
+        e.preventDefault();
+        const q = searchInput.value.trim();
+        if(!q) return;
+        try{ const list = await geocodeCities(q); if(list.length) goToCity(list[0]); }catch(err){}
+      }
+    });
+    document.addEventListener("click", e=>{
+      if(suggBox && !suggBox.hidden && !suggBox.contains(e.target) && e.target!==searchInput) suggBox.hidden = true;
+    });
+  }
+
+  /* ---------- live data layers ---------- */
+  const layerGroups = {
+    traffic:L.layerGroup(), power:L.layerGroup(), metro:L.layerGroup(),
+    security:L.layerGroup(), sensors:L.layerGroup(), water:L.layerGroup(),
+    incidents:L.layerGroup(), air:L.layerGroup()
+  };
+  Object.values(layerGroups).forEach(g=>g.addTo(leafletMap));
+
+  // small visible status line so it's obvious whether live data actually
+  // loaded (useful in restricted preview frames where a fetch can silently fail)
+  const layersPanelTitle = document.querySelector(".layers .panel-title");
+  let statusEl = null;
+  if(layersPanelTitle){
+    statusEl = document.createElement("div");
+    statusEl.className = "live-status";
+    statusEl.textContent = "Loading live data…";
+    layersPanelTitle.insertAdjacentElement("afterend", statusEl);
+  }
+  function setStatus(text, state){
+    if(!statusEl) return;
+    statusEl.textContent = text;
+    statusEl.classList.remove("ok","err");
+    if(state) statusEl.classList.add(state);
+  }
+
+  function iconFor(cls, glyph){
+    return L.divIcon({className:"", html:`<div class="marker ${cls}">${glyph}</div>`, iconSize:[29,29], iconAnchor:[14,14]});
+  }
+
+  async function fetchLiveOverpass(center){
+    const [lat, lon] = center;
+    const q = `[out:json][timeout:25];(
+      node["highway"="traffic_signals"](around:3000,${lat},${lon});
+      node["power"="substation"](around:3000,${lat},${lon});
+      way["power"="substation"](around:3000,${lat},${lon});
+      node["railway"~"station|subway_entrance|tram_stop"](around:3000,${lat},${lon});
+      node["highway"="bus_stop"](around:3000,${lat},${lon});
+      node["amenity"="bus_station"](around:3000,${lat},${lon});
+      node["man_made"="surveillance"](around:3000,${lat},${lon});
+      node["man_made"="monitoring_station"](around:3000,${lat},${lon});
+      node["natural"="water"](around:3000,${lat},${lon});
+      node["amenity"="drinking_water"](around:3000,${lat},${lon});
+      node["hazard"](around:3000,${lat},${lon});
+      way["highway"="construction"](around:3000,${lat},${lon});
+      node["place"~"^(suburb|neighbourhood|quarter|town)$"](around:4500,${lat},${lon});
+    );out center 500;`;
+    const res = await fetch("https://overpass-api.de/api/interpreter", {method:"POST", body:q});
+    if(!res.ok) throw new Error("overpass failed");
+    const data = await res.json();
+    return data.elements || [];
+  }
+
+  async function fetchAQI(center){
+    const [lat, lon] = center;
+    const url = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi`;
+    const res = await fetch(url);
+    if(!res.ok) throw new Error("aqi failed");
+    const data = await res.json();
+    return data.current ? data.current.us_aqi : null;
+  }
+
+  function elLatLon(el){
+    if(el.lat!=null && el.lon!=null) return [el.lat, el.lon];
+    if(el.center) return [el.center.lat, el.center.lon];
+    return null;
+  }
+  function distKm(lat1,lon1,lat2,lon2){
+    const R=6371, dLat=(lat2-lat1)*Math.PI/180, dLon=(lon2-lon1)*Math.PI/180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+    return 2*R*Math.asin(Math.sqrt(a));
+  }
+  function statusFor(score){
+    if(score>=6) return {cls:"critical", label:"CRITICAL"};
+    if(score>=4) return {cls:"high", label:"HIGH RISK"};
+    if(score>=2) return {cls:"warning", label:"WARNING"};
+    return {cls:"", label:"NORMAL"};
+  }
+
+  const neighborhoodData = {};
+  let neighborhoodMarkers = [];
+
+  function setMetric(i, strongText, smallHTML){
+    const rows = document.querySelectorAll(".district-panel .metric");
+    const row = rows[i];
+    if(!row) return;
+    const strong = row.querySelector("strong");
+    const small = row.querySelector("small");
+    if(strong) strong.textContent = strongText;
+    if(small && smallHTML!=null) small.innerHTML = smallHTML;
+  }
+
+  function selectNeighborhood(name){
+    const d = neighborhoodData[name];
+    if(!d) return;
+    const strong = document.querySelector(".district-panel strong");
+    const tag = document.querySelector(".district-panel .critical-tag");
+    if(strong) strong.textContent = name.toUpperCase();
+    if(tag) tag.textContent = d.status;
+    setMetric(0, `${d.traffic}`, "signals<br>nearby");
+    setMetric(1, d.aqi!=null?`${d.aqi}`:"—", d.aqi==null?"no data":d.aqi>150?"Critical":d.aqi>90?"Unhealthy":"Good");
+    setMetric(2, `${d.power}`, "substations<br>nearby");
+    setMetric(3, `${d.water}`, "water points<br>nearby");
+    setMetric(4, `${d.cams}`, "cameras<br>found (OSM)");
+    setMetric(5, `${d.incidents}`);
+  }
+
+  function renderCriticalZones(){
+    const box = document.querySelector(".critical-zones");
+    if(!box) return;
+    box.querySelectorAll(".zone").forEach(z=>z.remove());
+    const entries = Object.entries(neighborhoodData).filter(([,d])=>d.status!=="NORMAL").slice(0,3);
+    entries.forEach(([name,d])=>{
+      const div = document.createElement("div");
+      div.className = "zone";
+      div.innerHTML = `<b>${name.slice(0,2).toUpperCase()}</b><span><strong>${d.status}</strong><small>${d.incidents} hazard(s) nearby　•　AQI ${d.aqi??"—"}</small></span>`;
+      box.appendChild(div);
+    });
+  }
+
+  async function loadCityLiveData(center){
+    Object.values(layerGroups).forEach(g=>g.clearLayers());
+    neighborhoodMarkers.forEach(m=>leafletMap.removeLayer(m));
+    neighborhoodMarkers = [];
+    setStatus("Loading live data…");
+
+    let elements = [];
+    try{ elements = await fetchLiveOverpass(center); }
+    catch(e){
+      setStatus("Live data unavailable here (network/CSP blocked the request) — map tiles still work", "err");
+      return;
+    }
+
+    const neighborhoods = [];
+    const allPOIs = []; // flat list for local (per-neighbourhood) distance-based scoring
+
+    elements.forEach(el=>{
+      const ll = elLatLon(el);
+      if(!ll) return;
+      const t = el.tags || {};
+
+      if(t.place && /^(suburb|neighbourhood|quarter|town)$/.test(t.place) && t.name){
+        neighborhoods.push({name:t.name, lat:ll[0], lon:ll[1]});
+        return;
+      }
+      if(t.highway==="traffic_signals"){
+        L.marker(ll,{icon:iconFor("traffic","🚗")}).bindTooltip("Traffic signal").addTo(layerGroups.traffic);
+        allPOIs.push({lat:ll[0],lon:ll[1],cat:"traffic"});
+      } else if(t.power==="substation"){
+        L.marker(ll,{icon:iconFor("power","ϟ")}).bindTooltip("Power substation").addTo(layerGroups.power);
+        allPOIs.push({lat:ll[0],lon:ll[1],cat:"power"});
+      } else if(t.railway || t.highway==="bus_stop" || t.amenity==="bus_station"){
+        const label = t.railway ? "Rail/metro station" : "Bus stop";
+        L.marker(ll,{icon:iconFor("metro","▤")}).bindTooltip(label).addTo(layerGroups.metro);
+        allPOIs.push({lat:ll[0],lon:ll[1],cat:"metro"});
+      } else if(t.man_made==="surveillance"){
+        L.marker(ll,{icon:iconFor("security","▣")}).bindTooltip("Surveillance camera").addTo(layerGroups.security);
+        allPOIs.push({lat:ll[0],lon:ll[1],cat:"security"});
+      } else if(t.man_made==="monitoring_station"){
+        L.marker(ll,{icon:iconFor("sensor","⌁")}).bindTooltip("Monitoring sensor").addTo(layerGroups.sensors);
+        allPOIs.push({lat:ll[0],lon:ll[1],cat:"sensors"});
+      } else if(t.natural==="water" || t.amenity==="drinking_water"){
+        L.marker(ll,{icon:iconFor("water","◯")}).bindTooltip("Water point").addTo(layerGroups.water);
+        allPOIs.push({lat:ll[0],lon:ll[1],cat:"water"});
+      } else if(t.hazard || t.highway==="construction"){
+        L.marker(ll,{icon:iconFor("incident","⚠")}).bindTooltip("OSM-reported hazard/roadwork (not a live accident feed)").addTo(layerGroups.incidents);
+        allPOIs.push({lat:ll[0],lon:ll[1],cat:"incidents"});
+      }
+    });
+
+    try{
+      lastAQI = await fetchAQI(center);
+      if(lastAQI!=null) L.marker(center,{icon:iconFor("incident","♨")}).bindTooltip(`Live AQI: ${lastAQI}`).addTo(layerGroups.air);
+    }catch(e){ lastAQI = null; }
+
+    // real neighbourhoods, coloured from real nearby (≤800m) data — not fixed/fake
+    const uniqueByName = {};
+    neighborhoods.forEach(n=>{ if(!uniqueByName[n.name]) uniqueByName[n.name]=n; });
+    const picked = Object.values(uniqueByName).slice(0,8);
+
+    picked.forEach(n=>{
+      const near = cat => allPOIs.filter(p=>p.cat===cat && distKm(n.lat,n.lon,p.lat,p.lon)<0.8).length;
+      const nTraffic=near("traffic"), nPower=near("power"), nWater=near("water"),
+            nCams=near("security"), nSensors=near("sensors"), nIncidents=near("incidents");
+      const score = (lastAQI>150?3:lastAQI>90?1:0) + (nIncidents>0?3:0) + (nTraffic>10?1:0);
+      const st = statusFor(score);
+      const icon = L.divIcon({
+        className:"",
+        html:`<div class="geo-tag ${st.cls}"><strong>${n.name}</strong><span>${st.label}</span></div>`,
+        iconSize:[130,44], iconAnchor:[65,22]
+      });
+      const marker = L.marker([n.lat,n.lon], {icon}).addTo(leafletMap);
+      neighborhoodData[n.name] = {status:st.label, traffic:nTraffic, power:nPower, water:nWater,
+        cams:nCams, sensors:nSensors, aqi:lastAQI, incidents:nIncidents};
+      marker.on("click", ()=>selectNeighborhood(n.name));
+      neighborhoodMarkers.push(marker);
+    });
+
+    renderCriticalZones();
+    if(picked[0]) selectNeighborhood(picked[0].name);
+
+    setStatus(
+      `Live: ${allPOIs.filter(p=>p.cat==="traffic").length} traffic · ${allPOIs.filter(p=>p.cat==="power").length} power · `+
+      `${allPOIs.filter(p=>p.cat==="metro").length} transit · ${allPOIs.filter(p=>p.cat==="security").length} cams · `+
+      `AQI ${lastAQI??"—"}`,
+      "ok"
+    );
+  }
+
+  ["traffic","power","metro","security","sensors","water","incidents","air"].forEach(layer=>{
+    const input = document.querySelector(`[data-layer="${layer}"]`);
+    if(!input) return;
+    input.addEventListener("change", ()=>{
+      if(input.checked) leafletMap.addLayer(layerGroups[layer]); else leafletMap.removeLayer(layerGroups[layer]);
+    });
+  });
+
+  /* ---------- start: the user's real live location, else a default city ---------- */
+  function start(center, label){
+    currentCityCenter = center;
+    leafletMap.setView(center, 12);
+    setCityPin(center[0], center[1], label);
+    loadCityLiveData(center);
+  }
+
+  if(!window.isSecureContext){
+    setStatus("Note: location needs HTTPS or localhost — opening the file directly disables it, showing London instead", "err");
+  }
+
+  // Guarantee the map always starts even if the browser's location permission
+  // prompt is left unanswered (getCurrentPosition can otherwise hang forever).
+  let started = false;
+  function startOnce(center, label){
+    if(started) return;
+    started = true;
+    start(center, label);
+  }
+
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(
+      pos=> startOnce([pos.coords.latitude, pos.coords.longitude], "Your location"),
+      ()=> startOnce([51.5074,-0.1278], "London"),
+      {enableHighAccuracy:true, timeout:8000}
+    );
+    setTimeout(()=> startOnce([51.5074,-0.1278], "London"), 8500); // hard fallback regardless of what the browser does with the permission prompt
+  } else {
+    startOnce([51.5074,-0.1278], "London");
+  }
+
+  setTimeout(()=>leafletMap.invalidateSize(), 200);
+  window.addEventListener("resize", ()=>leafletMap.invalidateSize());
+})();
+
+  </script>
+</body>
+</html>

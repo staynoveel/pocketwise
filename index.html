@@ -1,162 +1,492 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>NEXUS — Alerts &amp; Incidents</title>
-<link rel="stylesheet" href="vendor/leaflet/leaflet.css" />
-<link rel="stylesheet" href="css/style.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS — Central Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#07090c;
+    --bg-1:#0e1116;
+    --bg-2:#141821;
+    --line:#2a303c;
+    --line-soft:#1b202a;
+    --brass:#c9a86a;
+    --brass-dim:#7d6a45;
+    --teal:#8fd9d1;
+    --teal-dim:#3f5f5c;
+    --ink:#eae6dc;
+    --ink-dim:#8a8f9a;
+    --danger:#d97757;
+    --ease: cubic-bezier(.22,.9,.28,1);
+  }
+
+  *{ box-sizing:border-box; }
+
+  html,body{
+    margin:0; padding:0; height:100%;
+    background:var(--bg-0);
+    color:var(--ink);
+    font-family:'Cairo', sans-serif;
+    overflow:hidden;
+  }
+
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+
+  /* ---------- STAGE ---------- */
+  .stage{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    background:
+      radial-gradient(ellipse at 50% 40%, #10141c 0%, #07090c 62%, #050608 100%);
+  }
+
+  .bg-grid{
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(var(--line-soft) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+    background-size: 64px 64px;
+    opacity:.35;
+    mask-image: radial-gradient(ellipse at 50% 45%, black 0%, transparent 72%);
+    -webkit-mask-image: radial-gradient(ellipse at 50% 45%, black 0%, transparent 72%);
+    transition: opacity 1.2s var(--ease);
+  }
+  .stage.activating .bg-grid, .stage.active .bg-grid{ opacity:.6; }
+
+  .bg-lattice{
+    position:absolute; inset:0; pointer-events:none;
+    opacity:.5;
+  }
+  .bg-lattice svg{ width:100%; height:100%; }
+  .bg-lattice path{
+    stroke: var(--line);
+    stroke-width:.6;
+    fill:none;
+    opacity:.4;
+  }
+
+  .corner-mark{
+    position:absolute; width:22px; height:22px;
+    border:1px solid var(--line);
+    opacity:.5;
+  }
+  .corner-mark.tl{ top:28px; left:28px; border-right:none; border-bottom:none; }
+  .corner-mark.tr{ top:28px; right:28px; border-left:none; border-bottom:none; }
+  .corner-mark.bl{ bottom:28px; left:28px; border-right:none; border-top:none; }
+  .corner-mark.br{ bottom:28px; right:28px; border-left:none; border-top:none; }
+
+  .hud-label{
+    position:absolute;
+    font-size:10px; letter-spacing:.28em;
+    color:var(--ink-dim);
+    text-transform:uppercase;
+    opacity:.55;
+  }
+  .hud-label.top-left{ top:34px; left:64px; }
+  .hud-label.top-right{ top:34px; right:64px; text-align:right; }
+  .hud-label.bottom-left{ bottom:34px; left:64px; }
+  .hud-label.bottom-right{ bottom:34px; right:64px; text-align:right; }
+  .hud-label .dot{
+    display:inline-block; width:5px; height:5px; border-radius:50%;
+    background:var(--teal-dim); margin-right:6px; vertical-align:middle;
+    transition: background .6s var(--ease), box-shadow .6s var(--ease);
+  }
+  .stage.active .hud-label .dot{
+    background:var(--teal);
+    box-shadow:0 0 6px var(--teal);
+  }
+
+  /* ---------- CORE / LOGO ---------- */
+  .core-column{
+    position:relative;
+    display:flex; flex-direction:column; align-items:center;
+    transition: transform 1.1s var(--ease);
+    z-index:5;
+  }
+  .stage.active .core-column{ transform: translateY(-9vh); }
+
+  .core-btn{
+    background:none; border:none; padding:0; margin:0; cursor:pointer;
+    position:relative;
+    width:clamp(190px, 26vw, 260px);
+    height:clamp(190px, 26vw, 260px);
+    display:flex; align-items:center; justify-content:center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .core-btn:focus-visible{ outline:2px solid var(--teal); outline-offset:10px; border-radius:50%; }
+  .stage.active .core-btn{ cursor:default; }
+
+  .core-glow{
+    position:absolute; width:60%; height:60%; border-radius:50%;
+    background: radial-gradient(circle, rgba(201,168,106,.16) 0%, rgba(201,168,106,0) 70%);
+    filter: blur(2px);
+    transition: opacity 1s var(--ease), transform 1s var(--ease);
+    opacity:.5;
+  }
+  .stage.activating .core-glow{ opacity:1; transform:scale(1.4); }
+  .stage.active .core-glow{ opacity:.85; transform:scale(1.15); }
+
+  .logo-svg{
+    position:relative; width:100%; height:100%;
+    overflow:visible;
+  }
+
+  .ring-outer{ stroke:var(--line); stroke-width:1; fill:none; transform-origin:100px 100px; animation: spin-slow 90s linear infinite; }
+  .ring-mid{ stroke:var(--line); stroke-width:.6; fill:none; transform-origin:100px 100px; animation: spin-slow-rev 70s linear infinite; opacity:.7;}
+  .ticks line{ stroke:var(--line); stroke-width:1; }
+  .star-a, .star-b{ stroke:var(--brass-dim); stroke-width:1.1; fill:none; transform-origin:100px 100px; transition: stroke 1s var(--ease), filter 1s var(--ease); }
+  .star-b{ stroke:var(--teal-dim); animation: spin-slow 140s linear infinite; }
+  .star-a{ animation: spin-slow-rev 160s linear infinite; }
+  .node{ fill:var(--bg-0); stroke:var(--brass-dim); stroke-width:1; transition: fill .5s var(--ease), stroke .5s var(--ease), r .5s var(--ease); }
+  .node-core{ fill:var(--bg-0); stroke:var(--brass); stroke-width:1.4; }
+  .center-dot{ fill:var(--brass-dim); transition: fill 1s var(--ease); }
+
+  @keyframes spin-slow{ to{ transform: rotate(360deg); } }
+  @keyframes spin-slow-rev{ to{ transform: rotate(-360deg); } }
+
+  /* idle breathing */
+  .logo-svg{ animation: breathe 5.5s ease-in-out infinite; }
+  @keyframes breathe{
+    0%,100%{ filter: drop-shadow(0 0 0px rgba(201,168,106,0)); }
+    50%{ filter: drop-shadow(0 0 6px rgba(201,168,106,.18)); }
+  }
+
+  /* activating state: brighten + flash nodes sequentially */
+  .stage.activating .star-a{ stroke:var(--brass); filter: drop-shadow(0 0 5px rgba(201,168,106,.5)); animation-duration: 6s; }
+  .stage.activating .star-b{ stroke:var(--teal); filter: drop-shadow(0 0 5px rgba(143,217,209,.5)); animation-duration: 6s; }
+  .stage.activating .ring-outer, .stage.activating .ring-mid{ stroke:var(--brass-dim); animation-duration: 8s; }
+  .stage.activating .center-dot{ fill:var(--teal); }
+  .stage.activating .node{ fill:var(--brass); stroke:var(--brass); animation: node-flash 1.1s var(--ease) both; }
+  .stage.activating .node:nth-of-type(1){ animation-delay:.02s; }
+  .stage.activating .node:nth-of-type(2){ animation-delay:.08s; }
+  .stage.activating .node:nth-of-type(3){ animation-delay:.14s; }
+  .stage.activating .node:nth-of-type(4){ animation-delay:.20s; }
+  .stage.activating .node:nth-of-type(5){ animation-delay:.26s; }
+  .stage.activating .node:nth-of-type(6){ animation-delay:.32s; }
+  .stage.activating .node:nth-of-type(7){ animation-delay:.38s; }
+  .stage.activating .node:nth-of-type(8){ animation-delay:.44s; }
+  @keyframes node-flash{
+    0%{ r:2.6; }
+    35%{ r:5.5; filter: drop-shadow(0 0 8px rgba(201,168,106,.9)); }
+    100%{ r:3.2; }
+  }
+
+  .stage.active .star-a{ stroke:var(--brass); }
+  .stage.active .star-b{ stroke:var(--teal); }
+  .stage.active .node{ fill:var(--brass); stroke:var(--brass); }
+  .stage.active .center-dot{ fill:var(--teal); }
+  .stage.active .logo-svg{ animation:none; filter: drop-shadow(0 0 10px rgba(201,168,106,.25)); }
+
+  /* radiating pulse rings on activation */
+  .pulse-rings{ position:absolute; inset:0; pointer-events:none; display:flex; align-items:center; justify-content:center; }
+  .pulse-ring{
+    position:absolute; width:clamp(190px,26vw,260px); height:clamp(190px,26vw,260px);
+    border-radius:50%; border:1px solid var(--brass);
+    opacity:0; transform:scale(1);
+  }
+  .stage.activating .pulse-ring{ animation: pulse-out 1.3s var(--ease) both; }
+  .stage.activating .pulse-ring:nth-child(2){ animation-delay:.15s; border-color:var(--teal); }
+  .stage.activating .pulse-ring:nth-child(3){ animation-delay:.3s; }
+  @keyframes pulse-out{
+    0%{ opacity:.55; transform:scale(1); }
+    100%{ opacity:0; transform:scale(2.6); }
+  }
+
+  /* wordmark + tagline */
+  .wordmark{
+    margin-top:22px;
+    font-size:clamp(22px,3vw,30px);
+    font-weight:700;
+    letter-spacing:.5em;
+    padding-left:.5em; /* optical centering for tracked text */
+    color:var(--ink);
+    transition: letter-spacing .9s var(--ease), color .9s var(--ease), opacity .6s var(--ease);
+  }
+  .stage.activating .wordmark{ letter-spacing:.62em; color:#fff; }
+  .stage.active .wordmark{ letter-spacing:.55em; font-size:clamp(18px,2vw,22px); color:#fff; }
+
+  .tagline{
+    margin-top:14px;
+    font-size:11px; letter-spacing:.3em; text-transform:uppercase;
+    color:var(--ink-dim);
+    transition: opacity .6s var(--ease), transform .6s var(--ease);
+  }
+  .stage.activating .tagline, .stage.active .tagline{ opacity:0; transform:translateY(-6px); pointer-events:none; }
+
+  .hint{
+    margin-top:34px;
+    font-size:10px; letter-spacing:.22em; text-transform:uppercase;
+    color:var(--brass-dim);
+    opacity:.75;
+    display:flex; align-items:center; gap:8px;
+    transition: opacity .5s var(--ease);
+  }
+  .hint::before, .hint::after{
+    content:''; width:16px; height:1px; background:var(--brass-dim);
+  }
+  .stage.activating .hint, .stage.active .hint{ opacity:0; }
+
+  /* ---------- LOGIN PANEL ---------- */
+  .panel-wrap{
+    margin-top:26px;
+    width:min(340px, 84vw);
+    opacity:0;
+    max-height:0;
+    overflow:hidden;
+    transform: translateY(-8px) scaleY(.92);
+    transform-origin: top center;
+    transition:
+      opacity .7s var(--ease) .35s,
+      max-height .9s var(--ease) .2s,
+      transform .9s var(--ease) .2s;
+  }
+  .stage.active .panel-wrap{
+    opacity:1; max-height:420px; transform: translateY(0) scaleY(1);
+  }
+
+  .panel{
+    position:relative;
+    border:1px solid var(--line);
+    background: linear-gradient(180deg, rgba(20,24,33,.7), rgba(10,12,16,.75));
+    backdrop-filter: blur(6px);
+    padding:26px 24px 22px;
+  }
+  .panel::before, .panel::after,
+  .panel .br-tl, .panel .br-tr, .panel .br-bl, .panel .br-br{
+    content:''; position:absolute; width:14px; height:14px;
+    border-color:var(--brass); border-style:solid; opacity:.85;
+  }
+  .panel .br-tl{ top:-1px; left:-1px; border-width:1px 0 0 1px; }
+  .panel .br-tr{ top:-1px; right:-1px; border-width:1px 1px 0 0; }
+  .panel .br-bl{ bottom:-1px; left:-1px; border-width:0 0 1px 1px; }
+  .panel .br-br{ bottom:-1px; right:-1px; border-width:0 1px 1px 0; }
+
+  .panel-eyebrow{
+    display:flex; align-items:center; justify-content:space-between;
+    font-size:9.5px; letter-spacing:.25em; text-transform:uppercase;
+    color:var(--ink-dim); margin-bottom:18px;
+  }
+  .panel-eyebrow .status{ color:var(--teal); }
+  .panel-eyebrow .status::before{
+    content:''; display:inline-block; width:5px; height:5px; border-radius:50%;
+    background:var(--teal); margin-right:5px; box-shadow:0 0 5px var(--teal);
+  }
+
+  .field{ margin-bottom:16px; }
+  .field label{
+    display:block; font-size:9.5px; letter-spacing:.22em; text-transform:uppercase;
+    color:var(--ink-dim); margin-bottom:7px;
+  }
+  .field input{
+    width:100%;
+    background: var(--bg-1);
+    border:1px solid var(--line);
+    color:var(--ink);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    letter-spacing:.05em;
+    padding:11px 12px;
+    outline:none;
+    transition: border-color .3s var(--ease), box-shadow .3s var(--ease);
+  }
+  .field input::placeholder{ color:#4a5160; }
+  .field input:focus{
+    border-color:var(--teal-dim);
+    box-shadow: 0 0 0 1px var(--teal-dim), 0 0 14px rgba(143,217,209,.12);
+  }
+
+  .submit-btn{
+    width:100%;
+    margin-top:6px;
+    background:transparent;
+    border:1px solid var(--brass);
+    color:var(--brass);
+    font-family:'Cairo', sans-serif;
+    font-weight:600;
+    font-size:12px; letter-spacing:.28em; text-transform:uppercase;
+    padding:12px 10px;
+    cursor:pointer;
+    position:relative; overflow:hidden;
+    transition: color .35s var(--ease), background .35s var(--ease), border-color .35s var(--ease);
+  }
+  .submit-btn:hover{ background:rgba(201,168,106,.08); }
+  .submit-btn:focus-visible{ outline:2px solid var(--teal); outline-offset:3px; }
+  .submit-btn:active{ transform:translateY(1px); }
+  .submit-btn.busy{ color:var(--ink-dim); border-color:var(--line); pointer-events:none; }
+  .submit-btn.granted{ color:var(--bg-0); background:var(--teal); border-color:var(--teal); }
+
+  .panel-footer{
+    margin-top:16px;
+    display:flex; justify-content:space-between;
+    font-size:9px; letter-spacing:.12em;
+    color:#4a5160;
+  }
+
+  @media (max-width: 480px){
+    .hud-label{ display:none; }
+    .corner-mark{ width:16px; height:16px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:.001s !important; animation-iteration-count:1 !important; transition-duration:.25s !important; }
+  }
+</style>
 </head>
 <body>
 
-<aside class="sidebar">
-  <div class="sidebar-brand">
-    <div class="logo-mark" id="logoMark"></div>
-    <div class="brand-text">
-      <span class="brand-name">NEXUS</span>
-      <span class="brand-sub">Crisis Management System</span>
-    </div>
-  </div>
-  <nav class="sidebar-nav" id="sidebarNav"></nav>
-  <div class="sidebar-footer">
-    <div class="health-card">
-      <span class="health-title">System Health</span>
-      <div class="health-ring" id="healthRing"></div>
-      <span class="health-status" id="healthStatus">OPERATIONAL</span>
-      <div class="health-spark" id="healthSpark"></div>
-    </div>
-  </div>
-</aside>
+  <div class="stage" id="stage">
+    <div class="bg-grid"></div>
 
-<div class="main">
-  <header class="topbar">
-    <div class="topbar-title">
-      <h1>ALERTS &amp; INCIDENTS</h1>
-      <p>Real-time incident monitoring and response</p>
-    </div>
-    <div class="topbar-right">
-      <div class="pill">
-        <span class="pill-label">System Status</span>
-        <span class="pill-value tone-green"><span class="dot"></span>OPERATIONAL</span>
-      </div>
-      <div class="pill clock-pill">
-        <span class="pill-label">Live Time</span>
-        <span class="clock-time" id="clockTime">--:--:--</span>
-        <span class="clock-date" id="clockDate">-</span>
-      </div>
-      <div class="live-badge"><span class="dot"></span>LIVE</div>
-      <div class="operator">
-        <div class="op-text">
-          <div class="op-name">OPERATOR 01</div>
-          <div class="op-role">Administrator</div>
-        </div>
-        <div class="op-avatar" id="opAvatar"></div>
-      </div>
-      <button class="icon-btn" id="menuBtn" aria-label="Menu"></button>
-    </div>
-  </header>
+    <div class="corner-mark tl"></div>
+    <div class="corner-mark tr"></div>
+    <div class="corner-mark bl"></div>
+    <div class="corner-mark br"></div>
 
-  <div class="content">
+    <div class="hud-label top-left mono"><span class="dot"></span>NEXUS // CORE-01</div>
+    <div class="hud-label top-right mono">GRID 24.47N&nbsp;54.36E</div>
+    <div class="hud-label bottom-left mono">STATUS: <span id="statusText">STANDBY</span></div>
+    <div class="hud-label bottom-right mono">CRISIS MGMT NETWORK</div>
 
-    <div class="stat-grid" id="statGrid"></div>
+    <div class="core-column">
+      <button class="core-btn" id="coreBtn" aria-label="Activate NEXUS central intelligence">
+        <div class="core-glow"></div>
+        <svg class="logo-svg" viewBox="0 0 200 200" aria-hidden="true">
+          <circle class="ring-outer" cx="100" cy="100" r="92"></circle>
+          <circle class="ring-mid" cx="100" cy="100" r="80"></circle>
 
-    <div class="split-row">
-      <div class="panel">
-        <div class="panel-head">
-          <h2>CITY INCIDENT MAP</h2>
-          <div class="controls-row">
-            <select class="select" id="filterType">
-              <option value="all">All Types</option>
-              <option value="traffic">Traffic</option>
-              <option value="air">Air</option>
-              <option value="water">Water</option>
-              <option value="security">Security</option>
-            </select>
-            <select class="select" id="filterDistrict">
-              <option value="all">All Districts</option>
-            </select>
-            <select class="select" id="filterTime">
-              <option value="24">24 Hours</option>
-              <option value="6">6 Hours</option>
-              <option value="1">1 Hour</option>
-              <option value="9999">All Time</option>
-            </select>
-            <button class="btn btn-icon btn-outline" id="mapFullscreenBtn" aria-label="Fullscreen"></button>
+          <g class="ticks">
+            <line x1="100" y1="6" x2="100" y2="16"></line>
+            <line x1="100" y1="184" x2="100" y2="194"></line>
+            <line x1="6" y1="100" x2="16" y2="100"></line>
+            <line x1="184" y1="100" x2="194" y2="100"></line>
+            <line x1="35.8" y1="35.8" x2="42.9" y2="42.9"></line>
+            <line x1="157.1" y1="157.1" x2="164.2" y2="164.2"></line>
+            <line x1="35.8" y1="164.2" x2="42.9" y2="157.1"></line>
+            <line x1="157.1" y1="42.9" x2="164.2" y2="35.8"></line>
+          </g>
+
+          <!-- axis-aligned square -->
+          <polygon class="star-a" points="149.5,50.5 50.5,50.5 50.5,149.5 149.5,149.5"></polygon>
+          <!-- diamond square (rotated 45deg) -->
+          <polygon class="star-b" points="170,100 100,30 30,100 100,170"></polygon>
+
+          <!-- nodes at the 8 star points -->
+          <circle class="node" cx="149.5" cy="50.5" r="3"></circle>
+          <circle class="node" cx="50.5" cy="50.5" r="3"></circle>
+          <circle class="node" cx="50.5" cy="149.5" r="3"></circle>
+          <circle class="node" cx="149.5" cy="149.5" r="3"></circle>
+          <circle class="node" cx="170" cy="100" r="3"></circle>
+          <circle class="node" cx="100" cy="30" r="3"></circle>
+          <circle class="node" cx="30" cy="100" r="3"></circle>
+          <circle class="node" cx="100" cy="170" r="3"></circle>
+
+          <circle class="node-core" cx="100" cy="100" r="9"></circle>
+          <circle class="center-dot" cx="100" cy="100" r="3.4"></circle>
+        </svg>
+      </button>
+
+      <div class="wordmark">NEXUS</div>
+      <div class="tagline mono">Central Intelligence · Smart City Crisis Network</div>
+      <div class="hint">Click the core to activate</div>
+
+      <div class="panel-wrap">
+        <div class="panel">
+          <div class="br-tl"></div><div class="br-tr"></div><div class="br-bl"></div><div class="br-br"></div>
+          <div class="panel-eyebrow mono">
+            <span>OPERATOR ACCESS</span>
+            <span class="status" id="panelStatus">LINK ESTABLISHED</span>
+          </div>
+          <form id="loginForm" autocomplete="off">
+            <div class="field">
+              <label for="opId">Operator ID</label>
+              <input type="text" id="opId" name="opId" placeholder="OP-000000" required>
+            </div>
+            <div class="field">
+              <label for="accessCode">Access Code</label>
+              <input type="password" id="accessCode" name="accessCode" placeholder="••••••••••" required>
+            </div>
+            <button type="submit" class="submit-btn mono" id="submitBtn">Secure Access</button>
+          </form>
+          <div class="panel-footer mono">
+            <span>ENC: AES-256</span>
+            <span>SESSION: PENDING</span>
           </div>
         </div>
-        <div class="map-wrap">
-          <div id="leafletMap"></div>
-          <div class="map-ctrl-group">
-            <button class="map-ctrl-btn" id="zoomInBtn" aria-label="Zoom in"></button>
-            <button class="map-ctrl-btn" id="zoomOutBtn" aria-label="Zoom out"></button>
-            <button class="map-ctrl-btn" id="locateBtn" aria-label="Locate / recenter"></button>
-          </div>
-        </div>
-        <div class="map-legend">
-          <span class="legend-item"><span class="legend-dot" style="background:var(--critical-red)"></span>Critical</span>
-          <span class="legend-item"><span class="legend-dot" style="background:var(--warning-orange)"></span>High</span>
-          <span class="legend-item"><span class="legend-dot" style="background:var(--yellow)"></span>Medium</span>
-          <span class="legend-item"><span class="legend-dot" style="background:var(--blue)"></span>Low</span>
-        </div>
-      </div>
-
-      <div class="panel details-panel">
-        <div class="panel-head">
-          <h2>INCIDENT DETAILS</h2>
-          <span class="badge" id="detailsSeverityBadge"></span>
-        </div>
-        <div class="panel-body" id="detailsBody">
-          <div class="details-empty">Select an incident on the map or in the feed below to view details.</div>
-        </div>
-        <div class="panel-head" style="border-top:1px solid var(--border); border-bottom:none;">
-          <h2>INCIDENT TIMELINE</h2>
-        </div>
-        <div class="timeline" id="detailsTimeline"></div>
       </div>
     </div>
 
-    <div class="panel">
-      <div class="feed-toolbar">
-        <div class="filter-pills" id="severityFilterPills">
-          <button class="filter-pill active" data-sev="all">ALL</button>
-          <button class="filter-pill" data-sev="critical">CRITICAL</button>
-          <button class="filter-pill" data-sev="high">HIGH</button>
-          <button class="filter-pill" data-sev="medium">MEDIUM</button>
-          <button class="filter-pill" data-sev="low">LOW</button>
-        </div>
-        <div class="search-box">
-          <span id="searchIcon"></span>
-          <input type="text" id="searchInput" placeholder="Search incident ID or location..." />
-        </div>
-      </div>
-      <div style="overflow-x:auto;">
-        <table class="feed-table">
-          <thead>
-            <tr>
-              <th>Severity</th>
-              <th>Incident</th>
-              <th>Location</th>
-              <th>Time</th>
-              <th>Status</th>
-              <th>Responsible</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="feedBody"></tbody>
-        </table>
-      </div>
+    <div class="pulse-rings">
+      <div class="pulse-ring"></div>
+      <div class="pulse-ring"></div>
+      <div class="pulse-ring"></div>
     </div>
-
   </div>
-</div>
 
-<script src="vendor/leaflet/leaflet.js"></script>
-<script src="vendor/leaflet.heat/leaflet-heat.js"></script>
-<script src="js/icons.js"></script>
-<script src="js/utils.js"></script>
-<script src="js/data.js"></script>
-<script src="js/nav.js"></script>
-<script src="js/livemap.js"></script>
-<script src="js/alerts.js"></script>
+<script>
+(function(){
+  const stage = document.getElementById('stage');
+  const coreBtn = document.getElementById('coreBtn');
+  const statusText = document.getElementById('statusText');
+  const form = document.getElementById('loginForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const opId = document.getElementById('opId');
+
+  let activated = false;
+
+  function activate(){
+    if (activated) return;
+    activated = true;
+    coreBtn.setAttribute('aria-pressed', 'true');
+    stage.classList.add('activating');
+    statusText.textContent = 'INITIALIZING';
+
+    setTimeout(() => {
+      stage.classList.remove('activating');
+      stage.classList.add('active');
+      statusText.textContent = 'ONLINE';
+      opId.focus({ preventScroll: true });
+    }, 1150);
+  }
+
+  coreBtn.addEventListener('click', activate);
+  coreBtn.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); }
+  });
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    if (submitBtn.classList.contains('busy') || submitBtn.classList.contains('granted')) return;
+
+    submitBtn.classList.add('busy');
+    submitBtn.textContent = 'Authenticating';
+
+    let dots = 0;
+    const dotTimer = setInterval(() => {
+      dots = (dots + 1) % 4;
+      submitBtn.textContent = 'Authenticating' + '.'.repeat(dots);
+    }, 350);
+
+    setTimeout(() => {
+      clearInterval(dotTimer);
+      submitBtn.classList.remove('busy');
+      submitBtn.classList.add('granted');
+      submitBtn.textContent = 'Access Granted';
+      document.getElementById('panelStatus').textContent = 'AUTHENTICATED';
+      document.querySelector('.panel-footer span:last-child').textContent = 'SESSION: ACTIVE';
+
+      // Enter the command center. NOTE: this is a UI flow only — the form does
+      // not authenticate against anything, so it must never be treated as a
+      // real access control boundary.
+      setTimeout(() => { window.location.href = 'dashboard.html'; }, 700);
+    }, 1600);
+  });
+})();
+</script>
+
 </body>
 </html>

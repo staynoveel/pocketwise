@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="fa" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexus — Traffic Monitoring</title>
+<style>
+  :root{
+    --bg-0:#080A0C;
+    --bg-1:#101316;
+    --bg-2:#15191D;
+    --line:#2A3035;
+    --text:#F2F2F2;
+    --muted:#8A9198;
+    --orange-strong:#FF5A00;
+    --orange:#FF7A18;
+    --amber:#FFB020;
+    --cyan:#00D9D9;
+    --cyan-2:#00B8B8;
+    --green:#18C77A;
+    --red:#FF3B30;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{
+    background:var(--bg-0);
+    color:var(--text);
+    font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
+    font-size:14px;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  ::-webkit-scrollbar{width:8px; height:8px;}
+  ::-webkit-scrollbar-track{background:var(--bg-1);}
+  ::-webkit-scrollbar-thumb{background:var(--line); border-radius:4px;}
+
+  a{color:inherit; text-decoration:none;}
+  button{font-family:inherit; cursor:pointer;}
+
+  .app{
+    display:grid;
+    grid-template-columns:236px 1fr;
+    min-height:100vh;
+    min-width:1180px;
+  }
+
+  /* ============ SIDEBAR ============ */
+  .sidebar{
+    background:var(--bg-1);
+    border-right:1px solid var(--line);
+    display:flex;
+    flex-direction:column;
+    padding:20px 14px;
+    position:relative;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:4px 8px 22px 8px;
+  }
+  .brand-mark{
+    width:34px; height:34px;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--cyan);
+    flex-shrink:0;
+  }
+  .brand-text{display:flex; flex-direction:column; line-height:1.15;}
+  .brand-title{font-weight:800; letter-spacing:1.5px; font-size:15px; color:var(--text);}
+  .brand-sub{font-size:9px; letter-spacing:1.5px; color:var(--muted); font-weight:600;}
+
+  .nav{display:flex; flex-direction:column; gap:2px; margin-top:4px;}
+  .nav-item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:10px 12px;
+    border-radius:8px;
+    color:var(--muted);
+    font-size:13.5px;
+    font-weight:500;
+    position:relative;
+    transition:background .15s, color .15s;
+  }
+  .nav-item svg{width:18px; height:18px; flex-shrink:0; opacity:.85;}
+  .nav-item:hover{background:var(--bg-2); color:var(--text);}
+  .nav-item.unbuilt{opacity:.38; cursor:default;}
+  .nav-item.unbuilt:hover{background:none; color:var(--muted);}
+  .nav-item.active{
+    background:linear-gradient(90deg, rgba(0,217,217,.14), rgba(0,217,217,.02));
+    color:var(--text);
+    box-shadow:inset 3px 0 0 var(--cyan);
+  }
+  .nav-item.active svg{opacity:1; color:var(--cyan);}
+  .nav-badge{
+    margin-left:auto;
+    background:var(--red);
+    color:#fff;
+    font-size:10.5px;
+    font-weight:700;
+    border-radius:999px;
+    min-width:19px;
+    height:19px;
+    display:flex; align-items:center; justify-content:center;
+    padding:0 5px;
+  }
+
+  .sidebar-bottom{margin-top:auto; padding-top:18px;}
+  .status-card{
+    background:var(--bg-2);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:18px 14px 14px;
+    text-align:center;
+  }
+  .status-label{
+    font-size:10px; letter-spacing:1.5px; color:var(--muted); font-weight:700; margin-bottom:12px;
+  }
+  .status-ring{
+    width:96px; height:96px;
+    margin:0 auto 12px;
+    position:relative;
+  }
+  .status-ring svg{transform:rotate(-90deg);}
+  .status-pct{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:22px; font-weight:800; color:var(--text);
+  }
+  .status-op{
+    font-size:11px; font-weight:700; letter-spacing:1px; color:var(--green); margin-bottom:8px;
+  }
+  .status-note{
+    font-size:10.5px; color:var(--muted);
+    display:flex; align-items:center; justify-content:center; gap:6px;
+  }
+  .dot-live{
+    width:6px; height:6px; border-radius:50%; background:var(--green);
+    box-shadow:0 0 6px var(--green);
+  }
+  .skyline{
+    margin-top:16px;
+    height:60px;
+    background:linear-gradient(180deg, transparent 0%, rgba(0,217,217,.06) 100%);
+    opacity:.5;
+    -webkit-mask-image:linear-gradient(180deg, transparent, black 70%);
+    mask-image:linear-gradient(180deg, transparent, black 70%);
+  }
+
+  /* ============ MAIN ============ */
+  .main{display:flex; flex-direction:column; min-height:100vh;}
+
+  .topbar{
+    height:64px;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    align-items:center;
+    gap:18px;
+    padding:0 24px;
+    background:var(--bg-0);
+    flex-shrink:0;
+  }
+  .icon-btn{
+    width:34px; height:34px;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--muted);
+    border-radius:8px;
+  }
+  .icon-btn:hover{background:var(--bg-2); color:var(--text);}
+  .page-title-group{display:flex; align-items:baseline; gap:12px;}
+  .page-title{font-size:17px; font-weight:800; letter-spacing:.5px;}
+  .page-sub{font-size:12.5px; color:var(--muted);}
+
+  .topbar-right{margin-left:auto; display:flex; align-items:center; gap:22px;}
+  .live-pill{
+    display:flex; align-items:center; gap:6px;
+    font-size:12px; font-weight:700; color:var(--green);
+  }
+  .clock-block{text-align:right; line-height:1.25;}
+  .clock-time{font-size:13.5px; font-weight:700; color:var(--text); font-variant-numeric:tabular-nums;}
+  .clock-date{font-size:11px; color:var(--muted);}
+  .nexus-connected{
+    display:flex; align-items:center; gap:7px;
+    font-size:12px; color:var(--muted); font-weight:600;
+  }
+  .nexus-connected svg{color:var(--cyan);}
+  .bell-wrap{position:relative;}
+  .bell-badge{
+    position:absolute; top:-4px; right:-6px;
+    background:var(--red); color:#fff;
+    font-size:9.5px; font-weight:800;
+    min-width:16px; height:16px; border-radius:999px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .op-card{
+    display:flex; align-items:center; gap:9px;
+    padding:5px 10px 5px 5px;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:var(--bg-1);
+  }
+  .op-avatar{
+    width:32px; height:32px; border-radius:50%;
+    background:linear-gradient(135deg,#3a3f45,#1c2024);
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px; color:var(--cyan); font-weight:700;
+    overflow:hidden;
+  }
+  .op-meta{line-height:1.2;}
+  .op-name{font-size:12.5px; font-weight:700;}
+  .op-level{font-size:10.5px; color:var(--muted);}
+
+  /* ============ CONTENT GRID ============ */
+  .content{
+    padding:20px 24px;
+    display:grid;
+    grid-template-columns:1fr 320px;
+    gap:20px;
+    flex:1;
+  }
+
+  .col-main{display:flex; flex-direction:column; gap:20px; min-width:0;}
+  .col-side{display:flex; flex-direction:column; gap:20px; min-width:0;}
+
+  .panel{
+    background:var(--bg-1);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:18px;
+  }
+  .panel-head{
+    display:flex; align-items:center; justify-content:between;
+    margin-bottom:14px;
+  }
+  .panel-title{
+    font-size:12px; font-weight:800; letter-spacing:1.1px; color:var(--text);
+  }
+  .panel-link{
+    margin-left:auto; font-size:11.5px; color:var(--cyan); font-weight:700;
+  }
+  .panel-link:hover{text-decoration:underline;}
+
+  /* search */
+  .search-row{
+    display:flex; align-items:center; gap:10px;
+    background:var(--bg-1);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:11px 14px;
+    color:var(--muted);
+  }
+  .search-row svg{flex-shrink:0;}
+  .search-row input{
+    background:none; border:none; outline:none; color:var(--text);
+    font-size:13px; width:100%;
+  }
+  .search-row input::placeholder{color:var(--muted);}
+  .filter-btn{
+    margin-left:auto; flex-shrink:0;
+    width:28px; height:28px; border-radius:7px;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--bg-2); border:1px solid var(--line); color:var(--muted);
+  }
+
+  /* map layers */
+  .layers-head{
+    display:flex; align-items:center; gap:8px;
+    font-size:11px; font-weight:800; letter-spacing:1.1px; color:var(--muted);
+    margin-bottom:12px;
+    cursor:pointer;
+  }
+  .layers-head svg{margin-left:auto;}
+  .layer-item{
+    display:flex; align-items:center; gap:10px;
+    padding:7px 2px;
+    font-size:13px; color:var(--text);
+    cursor:pointer;
+    user-select:none;
+  }
+  .chk{
+    width:16px; height:16px; border-radius:4px;
+    border:1.5px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+    background:var(--bg-2);
+  }
+  .chk.on{background:var(--cyan-2); border-color:var(--cyan-2);}
+  .chk.on svg{width:11px; height:11px; color:#06181a;}
+  .layer-item.dim{color:var(--muted);}
+  .clear-all{
+    width:100%;
+    margin-top:10px;
+    padding:9px;
+    background:var(--bg-2);
+    border:1px solid var(--line);
+    border-radius:9px;
+    color:var(--muted);
+    font-size:12px; font-weight:700;
+  }
+  .clear-all:hover{color:var(--text); border-color:var(--muted);}
+
+  /* map panel */
+  .map-panel{
+    padding:0;
+    overflow:hidden;
+    position:relative;
+    min-height:640px;
+    display:flex;
+    background:#060809;
+  }
+  .map-search-wrap{position:absolute; top:16px; left:16px; right:16px; z-index:5;}
+  .map-layers-wrap{
+    position:absolute; top:74px; left:16px; z-index:5;
+    width:184px;
+    background:var(--bg-1);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px;
+  }
+  .map-canvas-holder{
+    position:absolute; inset:0;
+    border-radius:16px;
+    overflow:hidden;
+  }
+  .zoom-controls{
+    position:absolute; bottom:80px; left:16px; z-index:5;
+    display:flex; flex-direction:column; gap:6px;
+  }
+  .zoom-btn{
+    width:34px; height:34px;
+    background:var(--bg-1);
+    border:1px solid var(--line);
+    border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--text);
+  }
+  .zoom-btn:hover{background:var(--bg-2);}
+  .map-legend{
+    position:absolute; bottom:16px; left:16px; right:16px; z-index:5;
+    background:rgba(16,19,22,.9);
+    backdrop-filter:blur(6px);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:11px 18px;
+    display:flex; align-items:center; gap:26px;
+    font-size:12px; font-weight:600; color:var(--text);
+  }
+  .legend-dot{width:9px; height:9px; border-radius:50%; display:inline-block; margin-right:7px;}
+
+  /* traffic overview */
+  .flow-index-row{display:flex; align-items:flex-start; gap:16px;}
+  .flow-index-left{flex:1;}
+  .flow-index-label{font-size:11.5px; color:var(--muted); margin-bottom:6px;}
+  .flow-index-value{font-size:38px; font-weight:800; line-height:1;}
+  .flow-index-value span{font-size:15px; font-weight:600; color:var(--muted);}
+  .flow-index-status{font-size:12px; color:var(--amber); font-weight:700; margin-top:4px;}
+  .mini-sparkline{margin-top:10px; width:100%; height:40px;}
+
+  .legend-list{display:flex; flex-direction:column; gap:9px; min-width:110px;}
+  .legend-row{display:flex; align-items:center; gap:8px; font-size:12px;}
+  .legend-row .dot{width:8px; height:8px; border-radius:50%; flex-shrink:0;}
+  .legend-row .lbl{color:var(--text); font-weight:600;}
+  .legend-row .val{margin-left:auto; color:var(--muted); font-weight:700; font-size:11.5px;}
+
+  /* district bars */
+  .district-row{
+    display:flex; align-items:center; gap:12px;
+    padding:9px 0;
+    border-bottom:1px solid var(--bg-2);
+  }
+  .district-row:last-child{border-bottom:none;}
+  .district-code{
+    font-size:11px; font-weight:800; color:var(--muted);
+    width:20px;
+  }
+  .district-name{font-size:13px; font-weight:600; width:76px; flex-shrink:0;}
+  .district-bar-track{
+    flex:1; height:6px; border-radius:4px; background:var(--bg-2); overflow:hidden;
+  }
+  .district-bar-fill{height:100%; border-radius:4px;}
+  .district-val{font-size:11px; font-weight:700; width:56px; text-align:right;}
+
+  /* congested roads */
+  .road-row{
+    display:flex; align-items:center; gap:12px;
+    padding:9px 0;
+    border-bottom:1px solid var(--bg-2);
+  }
+  .road-row:last-child{border-bottom:none;}
+  .road-rank{
+    width:20px; height:20px; border-radius:6px;
+    background:var(--bg-2);
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:800; color:var(--muted);
+    flex-shrink:0;
+  }
+  .road-name{font-size:13px; font-weight:600; flex:1;}
+  .road-status{font-size:11.5px; font-weight:700; width:64px;}
+  .road-speed{font-size:11.5px; color:var(--muted); width:52px; text-align:right;}
+
+  /* bottom row charts */
+  .bottom-row{display:grid; grid-template-columns:1.4fr 1fr; gap:20px; align-items:stretch;}
+  .chart-panel{display:flex; flex-direction:column;}
+  .chart-panel-title{font-size:12px; font-weight:800; letter-spacing:1.1px; margin-bottom:2px;}
+  .chart-panel-sub{font-size:11.5px; color:var(--muted); margin-bottom:10px;}
+  .big-metric{display:flex; align-items:baseline; gap:8px; margin:6px 0 10px;}
+  .big-metric-value{font-size:32px; font-weight:800;}
+  .big-metric-unit{font-size:13px; color:var(--muted); font-weight:600;}
+  .big-metric-delta{font-size:12px; font-weight:700; color:var(--red); margin-left:auto;}
+  .chart-box{position:relative; width:100%;}
+  .chart-box canvas{position:absolute; top:0; left:0; width:100%; height:100%; display:block;}
+  .chart-box.flow-box{height:220px;}
+  .chart-box.speed-box{height:110px;}
+
+  /* incidents */
+  .incident-row{
+    display:flex; align-items:flex-start; gap:11px;
+    padding:10px 0;
+    border-bottom:1px solid var(--bg-2);
+  }
+  .incident-row:last-child{border-bottom:none;}
+  .incident-icon{
+    width:32px; height:32px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .incident-body{flex:1; min-width:0;}
+  .incident-title{font-size:13px; font-weight:700;}
+  .incident-loc{font-size:11.5px; color:var(--muted);}
+  .incident-meta{text-align:right; flex-shrink:0;}
+  .incident-time{font-size:11px; color:var(--muted); display:block;}
+  .incident-sev{font-size:11px; font-weight:700; display:block; margin-top:3px;}
+
+  /* live feed */
+  .live-feed{
+    border-top:1px solid var(--line);
+    background:var(--bg-1);
+    padding:14px 24px;
+    display:flex;
+    align-items:center;
+    gap:34px;
+    overflow-x:auto;
+    flex-shrink:0;
+  }
+  .live-feed-label{
+    display:flex; align-items:center; gap:8px;
+    font-size:12px; font-weight:800; letter-spacing:.5px;
+    color:var(--text);
+    flex-shrink:0;
+  }
+  .feed-item{
+    display:flex; align-items:center; gap:10px; flex-shrink:0;
+  }
+  .feed-time{font-size:11.5px; color:var(--muted); font-variant-numeric:tabular-nums;}
+  .feed-icon{
+    width:26px; height:26px; border-radius:7px;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .feed-text{line-height:1.2;}
+  .feed-title{font-size:12.5px; font-weight:700;}
+  .feed-loc{font-size:11px; color:var(--muted);}
+  .feed-view-all{
+    margin-left:auto; flex-shrink:0;
+    font-size:12px; font-weight:700; color:var(--cyan);
+    display:flex; align-items:center; gap:5px;
+  }
+
+  svg{display:block;}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 40 40" width="34" height="34" fill="none">
+          <path d="M20 2 L36 10 V22 C36 30 29 36 20 38 C11 36 4 30 4 22 V10 Z" stroke="currentColor" stroke-width="2"/>
+          <path d="M20 8 L30 13 V21 C30 26.5 25.6 30.8 20 32.4 C14.4 30.8 10 26.5 10 21 V13 Z" fill="currentColor" opacity="0.15"/>
+          <path d="M14 20 L18 24 L27 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-title">NEXUS</span>
+        <span class="brand-sub">CRISIS COMMAND CENTER</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <a class="nav-item" href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Dashboard</a>
+      <a class="nav-item" href="city-map.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>City Map</a>
+      <a class="nav-item active" href="traffic.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>Traffic</a>
+      <a class="nav-item" href="power-grid.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 L4 14h6l-1 8 9-12h-6z"/></svg>Power Grid</a>
+      <a class="nav-item" href="air-quality.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3c-3 4-7 8-7 12a7 7 0 0 0 14 0c0-4-4-8-7-12z"/></svg>Air Quality</a>
+      <a class="nav-item unbuilt" title="No page built for this section yet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2s7 7.5 7 13a7 7 0 0 1-14 0c0-5.5 7-13 7-13z"/></svg>Water System</a>
+      <a class="nav-item unbuilt" title="No page built for this section yet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h3"/></svg>Metro &amp; Transit</a>
+      <a class="nav-item" href="security.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5 3.5 9 8 11 4.5-2 8-6 8-11V5z"/></svg>Security</a>
+      <a class="nav-item" href="alerts.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>Alerts &amp; Incidents<span class="nav-badge">14</span></a>
+      <a class="nav-item unbuilt" title="No page built for this section yet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5M9 13h6M9 17h6"/></svg>Reports</a>
+      <a class="nav-item" href="settings.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Settings</a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="status-card">
+        <div class="status-label">SYSTEM STATUS</div>
+        <div class="status-ring">
+          <svg width="96" height="96" viewBox="0 0 96 96">
+            <circle cx="48" cy="48" r="42" fill="none" stroke="#2A3035" stroke-width="7"/>
+            <circle cx="48" cy="48" r="42" fill="none" stroke="#18C77A" stroke-width="7"
+              stroke-linecap="round" stroke-dasharray="263.9" stroke-dashoffset="21.1"/>
+          </svg>
+          <div class="status-pct">92%</div>
+        </div>
+        <div class="status-op">OPERATIONAL</div>
+        <div class="status-note"><span class="dot-live"></span>All Systems Running</div>
+      </div>
+      <div class="skyline"></div>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+
+    <header class="topbar">
+      <button class="icon-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+      <div class="page-title-group">
+        <span class="page-title">TRAFFIC MONITORING</span>
+        <span class="page-sub">Real-Time Traffic Overview</span>
+      </div>
+
+      <div class="topbar-right">
+        <div class="live-pill"><span class="dot-live"></span>LIVE</div>
+        <div class="clock-block">
+          <div class="clock-time" id="clockTime">14:35:42</div>
+          <div class="clock-date">May 25, 2024</div>
+        </div>
+        <div class="nexus-connected">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M8 7.5 16 7.5M7 8l4 8M17 8l-4 8"/></svg>
+          NEXUS CONNECTED
+        </div>
+        <div class="bell-wrap icon-btn">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          <span class="bell-badge">12</span>
+        </div>
+        <div class="op-card">
+          <div class="op-avatar">O1</div>
+          <div class="op-meta">
+            <div class="op-name">Operator 01</div>
+            <div class="op-level">Level 7</div>
+          </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A9198" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- ============ MAIN COLUMN ============ -->
+      <div class="col-main">
+
+        <!-- MAP PANEL -->
+        <div class="panel map-panel">
+          <div class="map-canvas-holder">
+            <canvas id="mapCanvas"></canvas>
+          </div>
+
+          <div class="map-search-wrap">
+            <div class="search-row" style="background:var(--bg-1);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+              <input type="text" placeholder="Search Road, Intersection, or District...">
+              <div class="filter-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M7 12h10M10 18h4"/></svg></div>
+            </div>
+          </div>
+
+          <div class="map-layers-wrap">
+            <div class="layers-head">MAP LAYERS
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+            <div class="layer-item" data-on="1"><span class="chk on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Traffic Flow</div>
+            <div class="layer-item" data-on="1"><span class="chk on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Incidents</div>
+            <div class="layer-item" data-on="1"><span class="chk on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Cameras</div>
+            <div class="layer-item" data-on="1"><span class="chk on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Road Closures</div>
+            <div class="layer-item dim" data-on="0"><span class="chk"></span>Construction</div>
+            <div class="layer-item dim" data-on="0"><span class="chk"></span>Public Transit</div>
+            <div class="layer-item dim" data-on="0"><span class="chk"></span>Weather</div>
+            <button class="clear-all">Clear All</button>
+          </div>
+
+          <div class="zoom-controls">
+            <button class="zoom-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></button>
+            <button class="zoom-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14"/></svg></button>
+            <button class="zoom-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
+            <button class="zoom-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
+            <button class="zoom-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4-9 4-9-4zM3 12l9 4 9-4M3 17l9 4 9-4"/></svg></button>
+          </div>
+
+          <div class="map-legend">
+            <span><span class="legend-dot" style="background:#18C77A;"></span>Smooth</span>
+            <span><span class="legend-dot" style="background:#FFB020;"></span>Moderate</span>
+            <span><span class="legend-dot" style="background:#FF7A18;"></span>Heavy</span>
+            <span><span class="legend-dot" style="background:#FF3B30;"></span>Severe</span>
+            <span><span class="legend-dot" style="background:#8A9198;"></span>No Data</span>
+          </div>
+        </div>
+
+        <!-- BOTTOM ROW -->
+        <div class="bottom-row">
+          <div class="panel chart-panel">
+            <div class="chart-panel-title">TRAFFIC FLOW</div>
+            <div class="chart-panel-sub">Live Flow Over Time</div>
+            <div class="chart-box flow-box"><canvas id="flowChart"></canvas></div>
+          </div>
+          <div class="panel chart-panel">
+            <div class="chart-panel-title">AVERAGE SPEED</div>
+            <div class="chart-panel-sub">km/h</div>
+            <div class="big-metric">
+              <span class="big-metric-value">38</span>
+              <span class="big-metric-unit">km/h</span>
+              <span class="big-metric-delta">↓ 12%<br><span style="font-weight:500;color:var(--muted);">vs yesterday</span></span>
+            </div>
+            <div class="chart-box speed-box"><canvas id="speedChart"></canvas></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============ SIDE COLUMN ============ -->
+      <div class="col-side">
+
+        <!-- TRAFFIC OVERVIEW -->
+        <div class="panel">
+          <div class="panel-head"><span class="panel-title">TRAFFIC OVERVIEW</span></div>
+          <div class="flow-index-row">
+            <div class="flow-index-left">
+              <div class="flow-index-label">Live Traffic Index</div>
+              <div class="flow-index-value">68<span>/100</span></div>
+              <div class="flow-index-status">Moderate</div>
+              <canvas class="mini-sparkline" id="sparkline"></canvas>
+            </div>
+            <div class="legend-list">
+              <div class="legend-row"><span class="dot" style="background:#00D9D9;"></span><span class="lbl">Smooth</span><span class="val">28%</span></div>
+              <div class="legend-row"><span class="dot" style="background:#FFB020;"></span><span class="lbl">Moderate</span><span class="val">42%</span></div>
+              <div class="legend-row"><span class="dot" style="background:#FF7A18;"></span><span class="lbl">Heavy</span><span class="val">20%</span></div>
+              <div class="legend-row"><span class="dot" style="background:#FF3B30;"></span><span class="lbl">Severe</span><span class="val">10%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TRAFFIC BY DISTRICT -->
+        <div class="panel">
+          <div class="panel-head"><span class="panel-title">TRAFFIC BY DISTRICT</span><a class="panel-link" href="#">View All</a></div>
+          <div class="district-list">
+            <div class="district-row">
+              <span class="district-code">A1</span><span class="district-name">Downtown</span>
+              <div class="district-bar-track"><div class="district-bar-fill" style="width:78%; background:linear-gradient(90deg,#FF7A18,#FF3B30);"></div></div>
+              <span class="district-val" style="color:#FF3B30;">Heavy</span>
+            </div>
+            <div class="district-row">
+              <span class="district-code">B2</span><span class="district-name">Midtown</span>
+              <div class="district-bar-track"><div class="district-bar-fill" style="width:55%; background:#FFB020;"></div></div>
+              <span class="district-val" style="color:#FFB020;">Moderate</span>
+            </div>
+            <div class="district-row">
+              <span class="district-code">C3</span><span class="district-name">Riverside</span>
+              <div class="district-bar-track"><div class="district-bar-fill" style="width:50%; background:#FFB020;"></div></div>
+              <span class="district-val" style="color:#FFB020;">Moderate</span>
+            </div>
+            <div class="district-row">
+              <span class="district-code">D1</span><span class="district-name">West End</span>
+              <div class="district-bar-track"><div class="district-bar-fill" style="width:26%; background:#18C77A;"></div></div>
+              <span class="district-val" style="color:#18C77A;">Smooth</span>
+            </div>
+            <div class="district-row">
+              <span class="district-code">E4</span><span class="district-name">Industrial</span>
+              <div class="district-bar-track"><div class="district-bar-fill" style="width:18%; background:#18C77A;"></div></div>
+              <span class="district-val" style="color:#18C77A;">Smooth</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- TOP CONGESTED ROADS -->
+        <div class="panel">
+          <div class="panel-head"><span class="panel-title">TOP CONGESTED ROADS</span><a class="panel-link" href="#">View All</a></div>
+          <div class="road-list">
+            <div class="road-row"><span class="road-rank">1</span><span class="road-name">Main St. Bridge</span><span class="road-status" style="color:#FF3B30;">Severe</span><span class="road-speed">12 km/h</span></div>
+            <div class="road-row"><span class="road-rank">2</span><span class="road-name">Central Avenue</span><span class="road-status" style="color:#FF7A18;">Heavy</span><span class="road-speed">18 km/h</span></div>
+            <div class="road-row"><span class="road-rank">3</span><span class="road-name">Liberty Blvd</span><span class="road-status" style="color:#FF7A18;">Heavy</span><span class="road-speed">20 km/h</span></div>
+            <div class="road-row"><span class="road-rank">4</span><span class="road-name">5th Street</span><span class="road-status" style="color:#FFB020;">Moderate</span><span class="road-speed">32 km/h</span></div>
+            <div class="road-row"><span class="road-rank">5</span><span class="road-name">Riverfront Road</span><span class="road-status" style="color:#FFB020;">Moderate</span><span class="road-speed">35 km/h</span></div>
+          </div>
+        </div>
+
+        <!-- ACTIVE INCIDENTS -->
+        <div class="panel">
+          <div class="panel-head"><span class="panel-title">ACTIVE INCIDENTS</span><a class="panel-link" href="alerts.html">View All</a></div>
+          <div class="incident-list">
+            <div class="incident-row">
+              <span class="incident-icon" style="background:rgba(255,59,48,.12); color:#FF3B30;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5 3.5 9 8 11 4.5-2 8-6 8-11V5z"/><path d="M12 8v5M12 16h.01"/></svg>
+              </span>
+              <div class="incident-body"><div class="incident-title">Accident</div><div class="incident-loc">Main St. Bridge</div></div>
+              <div class="incident-meta"><span class="incident-time">14:32</span><span class="incident-sev" style="color:#FF3B30;">Severe</span></div>
+            </div>
+            <div class="incident-row">
+              <span class="incident-icon" style="background:rgba(255,122,24,.12); color:#FF7A18;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/></svg>
+              </span>
+              <div class="incident-body"><div class="incident-title">Road Closure</div><div class="incident-loc">3rd Avenue</div></div>
+              <div class="incident-meta"><span class="incident-time">14:25</span><span class="incident-sev" style="color:#FF7A18;">Heavy</span></div>
+            </div>
+            <div class="incident-row">
+              <span class="incident-icon" style="background:rgba(255,176,32,.12); color:#FFB020;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/></svg>
+              </span>
+              <div class="incident-body"><div class="incident-title">Construction</div><div class="incident-loc">Riverside Dr.</div></div>
+              <div class="incident-meta"><span class="incident-time">14:20</span><span class="incident-sev" style="color:#FFB020;">Moderate</span></div>
+            </div>
+            <div class="incident-row">
+              <span class="incident-icon" style="background:rgba(255,176,32,.12); color:#FFB020;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="9" width="15" height="8" rx="1.5"/><path d="M17 11h3l2 3v3h-5z"/><circle cx="6.5" cy="18.5" r="1.5"/><circle cx="16.5" cy="18.5" r="1.5"/></svg>
+              </span>
+              <div class="incident-body"><div class="incident-title">Disabled Vehicle</div><div class="incident-loc">Central Ave.</div></div>
+              <div class="incident-meta"><span class="incident-time">14:15</span><span class="incident-sev" style="color:#FFB020;">Moderate</span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ LIVE FEED ============ -->
+    <div class="live-feed">
+      <div class="live-feed-label"><span class="dot-live" style="background:#FF3B30; box-shadow:0 0 6px #FF3B30;"></span>LIVE TRAFFIC FEED</div>
+
+      <div class="feed-item">
+        <span class="feed-time">14:35:01</span>
+        <span class="feed-icon" style="background:rgba(255,59,48,.12); color:#FF3B30;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="9" width="15" height="8" rx="1.5"/><path d="M17 11h3l2 3v3h-5z"/><circle cx="6.5" cy="18.5" r="1.5"/><circle cx="16.5" cy="18.5" r="1.5"/></svg></span>
+        <span class="feed-text"><span class="feed-title">Accident Reported</span><br><span class="feed-loc">Main St. Bridge</span></span>
+      </div>
+
+      <div class="feed-item">
+        <span class="feed-time">14:35:05</span>
+        <span class="feed-icon" style="background:rgba(255,122,24,.12); color:#FF7A18;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg></span>
+        <span class="feed-text"><span class="feed-title">Heavy Traffic</span><br><span class="feed-loc">Central Avenue</span></span>
+      </div>
+
+      <div class="feed-item">
+        <span class="feed-time">14:35:10</span>
+        <span class="feed-icon" style="background:rgba(255,176,32,.12); color:#FFB020;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/></svg></span>
+        <span class="feed-text"><span class="feed-title">Road Closure</span><br><span class="feed-loc">3rd Avenue</span></span>
+      </div>
+
+      <div class="feed-item">
+        <span class="feed-time">14:35:15</span>
+        <span class="feed-icon" style="background:rgba(255,176,32,.12); color:#FFB020;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/></svg></span>
+        <span class="feed-text"><span class="feed-title">Construction</span><br><span class="feed-loc">Riverside Dr.</span></span>
+      </div>
+
+      <div class="feed-item">
+        <span class="feed-time">14:35:20</span>
+        <span class="feed-icon" style="background:rgba(24,199,122,.12); color:#18C77A;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg></span>
+        <span class="feed-text"><span class="feed-title">Traffic Normal</span><br><span class="feed-loc">West End</span></span>
+      </div>
+
+      <span class="feed-view-all">View Full Feed <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></span>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ---------- clock ---------- */
+function pad(n){return n.toString().padStart(2,'0');}
+function tick(){
+  const d = new Date();
+  document.getElementById('clockTime').textContent =
+    pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+}
+tick(); setInterval(tick, 1000);
+
+/* ---------- layer checkboxes ---------- */
+document.querySelectorAll('.layer-item').forEach(item=>{
+  item.addEventListener('click', ()=>{
+    const chk = item.querySelector('.chk');
+    const on = item.dataset.on === '1';
+    if(on){
+      chk.classList.remove('on'); chk.innerHTML='';
+      item.classList.add('dim'); item.dataset.on='0';
+    } else {
+      chk.classList.add('on');
+      chk.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>';
+      item.classList.remove('dim'); item.dataset.on='1';
+    }
+  });
+});
+document.querySelector('.clear-all').addEventListener('click', ()=>{
+  document.querySelectorAll('.layer-item').forEach(item=>{
+    const chk = item.querySelector('.chk');
+    chk.classList.remove('on'); chk.innerHTML='';
+    item.classList.add('dim'); item.dataset.on='0';
+  });
+});
+
+/* ---------- MAP: procedural road network with traffic colors ---------- */
+const mapCanvas = document.getElementById('mapCanvas');
+const mapCtx = mapCanvas.getContext('2d');
+let mapW, mapH;
+
+function resizeMap(){
+  const holder = mapCanvas.parentElement;
+  mapW = mapCanvas.width = holder.clientWidth * devicePixelRatio;
+  mapH = mapCanvas.height = holder.clientHeight * devicePixelRatio;
+  mapCanvas.style.width = holder.clientWidth+'px';
+  mapCanvas.style.height = holder.clientHeight+'px';
+}
+
+// Seeded pseudo-random for stable layout
+function mulberry32(a){
+  return function(){
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  }
+}
+const rand = mulberry32(42);
+
+const colors = {smooth:'#18C77A', moderate:'#FFB020', heavy:'#FF7A18', severe:'#FF3B30'};
+let roads = [];
+let markers = [];
+
+function buildNetwork(){
+  roads = [];
+  markers = [];
+  const w = mapCanvas.width, h = mapCanvas.height;
+  const cx = w/2, cy = h/2;
+
+  // radial arterial roads from center
+  const numRadial = 9;
+  for(let i=0;i<numRadial;i++){
+    const angle = (i/numRadial) * Math.PI*2 + rand()*0.3;
+    const len = (0.42 + rand()*0.18) * Math.min(w,h);
+    const midJitterX = (rand()-0.5)*w*0.12;
+    const midJitterY = (rand()-0.5)*h*0.12;
+    const ex = cx + Math.cos(angle)*len;
+    const ey = cy + Math.sin(angle)*len;
+    const mx = cx + Math.cos(angle)*len*0.55 + midJitterX;
+    const my = cy + Math.sin(angle)*len*0.55 + midJitterY;
+    const states = ['smooth','moderate','heavy','severe'];
+    const weights = [0.28,0.42,0.20,0.10];
+    let rnd = rand(), acc=0, state='smooth';
+    for(let s=0;s<states.length;s++){acc+=weights[s]; if(rnd<=acc){state=states[s]; break;}}
+    roads.push({
+      pts:[[cx,cy],[mx,my],[ex,ey]],
+      state, width: 3 + rand()*2.5
+    });
+  }
+
+  // grid roads (secondary streets)
+  const gridLines = 14;
+  for(let i=0;i<gridLines;i++){
+    const x = (i/gridLines)*w + (rand()-0.5)*30;
+    const jitter = rand()*40-20;
+    const states = ['smooth','moderate','heavy','severe'];
+    const weights = [0.45,0.35,0.13,0.07];
+    let rnd = rand(), acc=0, state='smooth';
+    for(let s=0;s<states.length;s++){acc+=weights[s]; if(rnd<=acc){state=states[s]; break;}}
+    roads.push({pts:[[x,0],[x+jitter,h]], state, width:1.4, thin:true});
+  }
+  for(let i=0;i<Math.floor(gridLines*0.7);i++){
+    const y = (i/(gridLines*0.7))*h + (rand()-0.5)*30;
+    const jitter = rand()*40-20;
+    const states = ['smooth','moderate','heavy','severe'];
+    const weights = [0.45,0.35,0.13,0.07];
+    let rnd = rand(), acc=0, state='smooth';
+    for(let s=0;s<states.length;s++){acc+=weights[s]; if(rnd<=acc){state=states[s]; break;}}
+    roads.push({pts:[[0,y],[w,y+jitter]], state, width:1.4, thin:true});
+  }
+
+  // markers on high-severity roads
+  const markerTypes = ['warning','camera','closure','construction'];
+  roads.filter(r=>!r.thin && (r.state==='severe'||r.state==='heavy') && rand()>0.3).forEach(r=>{
+    const t = r.pts[1];
+    markers.push({x:t[0], y:t[1], type: r.state==='severe'?'warning':'camera'});
+  });
+  for(let i=0;i<10;i++){
+    markers.push({x:rand()*w, y:rand()*h, type: markerTypes[Math.floor(rand()*markerTypes.length)]});
+  }
+}
+
+function drawBackground(){
+  const w=mapCanvas.width, h=mapCanvas.height;
+  mapCtx.fillStyle = '#060809';
+  mapCtx.fillRect(0,0,w,h);
+
+  // faint building blocks
+  const blockRand = mulberry32(7);
+  mapCtx.fillStyle = 'rgba(21,25,29,0.6)';
+  for(let i=0;i<120;i++){
+    const bw = 14+blockRand()*46, bh = 14+blockRand()*46;
+    const bx = blockRand()*w, by = blockRand()*h;
+    mapCtx.fillRect(bx,by,bw,bh);
+  }
+
+  // subtle water area bottom-left
+  const grad = mapCtx.createRadialGradient(w*0.12,h*0.82,10,w*0.12,h*0.82,w*0.28);
+  grad.addColorStop(0,'rgba(0,184,184,0.10)');
+  grad.addColorStop(1,'rgba(0,184,184,0)');
+  mapCtx.fillStyle = grad;
+  mapCtx.fillRect(0,0,w,h);
+}
+
+function drawRoads(){
+  roads.forEach(r=>{
+    mapCtx.beginPath();
+    mapCtx.moveTo(r.pts[0][0], r.pts[0][1]);
+    for(let i=1;i<r.pts.length;i++) mapCtx.lineTo(r.pts[i][0], r.pts[i][1]);
+    const col = colors[r.state];
+    mapCtx.strokeStyle = col;
+    mapCtx.lineWidth = (r.width||2) * devicePixelRatio;
+    mapCtx.lineCap = 'round';
+    mapCtx.lineJoin = 'round';
+    mapCtx.globalAlpha = r.thin ? 0.55 : 0.95;
+    mapCtx.shadowColor = col;
+    mapCtx.shadowBlur = r.thin ? 0 : 6 * devicePixelRatio;
+    mapCtx.stroke();
+    mapCtx.shadowBlur = 0;
+    mapCtx.globalAlpha = 1;
+  });
+}
+
+function drawMarker(m){
+  const s = 9*devicePixelRatio;
+  mapCtx.save();
+  mapCtx.translate(m.x, m.y);
+  if(m.type==='warning'){
+    mapCtx.beginPath();
+    mapCtx.moveTo(0,-s); mapCtx.lineTo(s*0.9,s*0.75); mapCtx.lineTo(-s*0.9,s*0.75); mapCtx.closePath();
+    mapCtx.fillStyle = 'rgba(255,59,48,0.18)';
+    mapCtx.strokeStyle = '#FF3B30';
+    mapCtx.lineWidth = 1.6*devicePixelRatio;
+    mapCtx.fill(); mapCtx.stroke();
+    mapCtx.fillStyle = '#FF3B30';
+    mapCtx.font = (s*1.1)+'px sans-serif';
+    mapCtx.textAlign='center';
+    mapCtx.fillText('!', 0, s*0.5);
+  } else if(m.type==='camera'){
+    mapCtx.beginPath();
+    mapCtx.arc(0,0,s*0.75,0,Math.PI*2);
+    mapCtx.fillStyle = 'rgba(0,217,217,0.15)';
+    mapCtx.strokeStyle = '#00D9D9';
+    mapCtx.lineWidth = 1.4*devicePixelRatio;
+    mapCtx.fill(); mapCtx.stroke();
+  } else if(m.type==='closure'){
+    mapCtx.beginPath();
+    mapCtx.arc(0,0,s*0.7,0,Math.PI*2);
+    mapCtx.fillStyle = 'rgba(255,176,32,0.15)';
+    mapCtx.strokeStyle = '#FFB020';
+    mapCtx.lineWidth = 1.4*devicePixelRatio;
+    mapCtx.fill(); mapCtx.stroke();
+  } else {
+    mapCtx.beginPath();
+    mapCtx.arc(0,0,s*0.65,0,Math.PI*2);
+    mapCtx.fillStyle = 'rgba(255,122,24,0.15)';
+    mapCtx.strokeStyle = '#FF7A18';
+    mapCtx.lineWidth = 1.4*devicePixelRatio;
+    mapCtx.fill(); mapCtx.stroke();
+  }
+  mapCtx.restore();
+}
+
+function renderMap(){
+  drawBackground();
+  drawRoads();
+  markers.forEach(drawMarker);
+}
+
+function initMap(){
+  resizeMap();
+  buildNetwork();
+  renderMap();
+}
+window.addEventListener('resize', ()=>{ initMap(); });
+initMap();
+
+/* ---------- sparkline (traffic index mini chart) ---------- */
+function drawSparkline(){
+  const c = document.getElementById('sparkline');
+  const ctx = c.getContext('2d');
+  const w = c.width = c.clientWidth * devicePixelRatio;
+  const h = c.height = c.clientHeight * devicePixelRatio;
+  const pts = [30,32,35,33,40,45,42,50,55,52,60,65,62,68,64,70,66,60,58,62,68];
+  const max = 100;
+  ctx.beginPath();
+  pts.forEach((p,i)=>{
+    const x = (i/(pts.length-1))*w;
+    const y = h - (p/max)*h;
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  });
+  const grad = ctx.createLinearGradient(0,0,0,h);
+  grad.addColorStop(0,'rgba(255,176,32,0.35)');
+  grad.addColorStop(1,'rgba(255,176,32,0)');
+  ctx.lineTo(w,h); ctx.lineTo(0,h); ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  ctx.beginPath();
+  pts.forEach((p,i)=>{
+    const x = (i/(pts.length-1))*w;
+    const y = h - (p/max)*h;
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  });
+  ctx.strokeStyle = '#FFB020';
+  ctx.lineWidth = 1.6*devicePixelRatio;
+  ctx.stroke();
+}
+drawSparkline();
+
+/* ---------- Traffic Flow chart (big, gradient line green->red) ---------- */
+function drawFlowChart(){
+  const c = document.getElementById('flowChart');
+  const box = c.parentElement;
+  const ctx = c.getContext('2d');
+  const dpr = devicePixelRatio;
+  const cssW = box.clientWidth, cssH = box.clientHeight;
+  const w = c.width = cssW * dpr;
+  const h = c.height = cssH * dpr;
+  const pad = 24*dpr;
+
+  const labels = ['00:00','04:00','08:00','12:00','16:00','20:00','24:00'];
+  const data = [8,6,10,15,30,45,55,60,68,72,78,82,80,75,72,70,74,78,80,76,68,60,55,50];
+
+  const maxY = 100;
+  const plotW = w - pad*1.5;
+  const plotH = h - pad*1.8;
+  const originX = pad*0.8;
+  const originY = h - pad*0.9;
+
+  // grid lines + y labels
+  ctx.strokeStyle = 'rgba(42,48,53,0.6)';
+  ctx.lineWidth = 1*dpr;
+  ctx.fillStyle = '#8A9198';
+  ctx.font = (10*dpr)+'px Inter, sans-serif';
+  ctx.textAlign = 'right';
+  [0,25,50,75,100].forEach(v=>{
+    const y = originY - (v/maxY)*plotH;
+    ctx.beginPath();
+    ctx.moveTo(originX, y);
+    ctx.lineTo(originX+plotW, y);
+    ctx.stroke();
+    ctx.fillText(v, originX-6*dpr, y+3*dpr);
+  });
+
+  // x labels
+  ctx.textAlign = 'center';
+  labels.forEach((l,i)=>{
+    const x = originX + (i/(labels.length-1))*plotW;
+    ctx.fillText(l, x, h-4*dpr);
+  });
+
+  function xy(i){
+    const x = originX + (i/(data.length-1))*plotW;
+    const y = originY - (data[i]/maxY)*plotH;
+    return [x,y];
+  }
+
+  // gradient fill under curve
+  const fillGrad = ctx.createLinearGradient(0,originY-plotH,0,originY);
+  fillGrad.addColorStop(0,'rgba(255,59,48,0.25)');
+  fillGrad.addColorStop(0.5,'rgba(255,122,24,0.18)');
+  fillGrad.addColorStop(1,'rgba(24,199,122,0.02)');
+  ctx.beginPath();
+  data.forEach((d,i)=>{
+    const [x,y]=xy(i);
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  });
+  ctx.lineTo(originX+plotW, originY);
+  ctx.lineTo(originX, originY);
+  ctx.closePath();
+  ctx.fillStyle = fillGrad;
+  ctx.fill();
+
+  // line with color gradient (green -> amber -> orange -> red)
+  const lineGrad = ctx.createLinearGradient(originX,0,originX+plotW,0);
+  lineGrad.addColorStop(0,'#18C77A');
+  lineGrad.addColorStop(0.35,'#FFB020');
+  lineGrad.addColorStop(0.6,'#FF7A18');
+  lineGrad.addColorStop(0.85,'#FF3B30');
+  lineGrad.addColorStop(1,'#FF7A18');
+  ctx.beginPath();
+  data.forEach((d,i)=>{
+    const [x,y]=xy(i);
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  });
+  ctx.strokeStyle = lineGrad;
+  ctx.lineWidth = 2.2*dpr;
+  ctx.lineJoin='round';
+  ctx.stroke();
+
+  // marker point (68 label like reference, near 16:00-20:00)
+  const markerIdx = 16;
+  const [mx,my] = xy(markerIdx);
+  ctx.beginPath();
+  ctx.arc(mx,my,4*dpr,0,Math.PI*2);
+  ctx.fillStyle = '#0B0D0F';
+  ctx.strokeStyle = '#FF7A18';
+  ctx.lineWidth = 2*dpr;
+  ctx.fill(); ctx.stroke();
+}
+drawFlowChart();
+
+/* ---------- Average speed mini chart (cyan) ---------- */
+function drawSpeedChart(){
+  const c = document.getElementById('speedChart');
+  const box = c.parentElement;
+  const ctx = c.getContext('2d');
+  const dpr = devicePixelRatio;
+  const cssW = box.clientWidth, cssH = box.clientHeight;
+  const w = c.width = cssW * dpr;
+  const h = c.height = cssH * dpr;
+  const data = [20,22,18,25,30,28,35,32,30,26,24,28,32,38,34,30,28,25,22,20,18,22,26,24];
+  const max = 45;
+
+  function xy(i){
+    const x = (i/(data.length-1))*w;
+    const y = h - (data[i]/max)*h*0.85 - h*0.05;
+    return [x,y];
+  }
+  const grad = ctx.createLinearGradient(0,0,0,h);
+  grad.addColorStop(0,'rgba(0,217,217,0.30)');
+  grad.addColorStop(1,'rgba(0,217,217,0)');
+  ctx.beginPath();
+  data.forEach((d,i)=>{ const [x,y]=xy(i); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
+  ctx.lineTo(w,h); ctx.lineTo(0,h); ctx.closePath();
+  ctx.fillStyle = grad; ctx.fill();
+
+  ctx.beginPath();
+  data.forEach((d,i)=>{ const [x,y]=xy(i); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
+  ctx.strokeStyle = '#00D9D9';
+  ctx.lineWidth = 2*dpr;
+  ctx.stroke();
+}
+drawSpeedChart();
+
+window.addEventListener('resize', ()=>{
+  drawSparkline(); drawFlowChart(); drawSpeedChart();
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NEXUS · Crisis Command Center</title>
+</head>
+<body>
+<style>
+  :root{
+    --bg0:#080A0C;
+    --bg1:#101316;
+    --bg2:#15191D;
+    --line:#2A3035;
+    --text:#F2F2F2;
+    --sub:#8A9198;
+    --orange:#FF5A00;
+    --orange2:#FF7A18;
+    --amber:#FFB020;
+    --cyan:#00D9D9;
+    --cyan2:#00B8B8;
+    --green:#18C77A;
+    --red:#FF3B30;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; }
+  body{
+    background:var(--bg0);
+    color:var(--text);
+    font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    display:flex;
+    min-height:100vh;
+  }
+  button{ font-family:inherit; }
+  svg{ display:block; flex-shrink:0; }
+
+  /* ---------- Layout ---------- */
+  .app{ display:flex; width:100%; }
+  .main{ flex:1; min-width:0; }
+  .content{ padding:26px 28px 40px; }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:236px; flex-shrink:0;
+    background:var(--bg1);
+    border-right:1px solid var(--line);
+    display:flex; flex-direction:column;
+    height:100vh; position:sticky; top:0;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; padding:22px 22px 20px; }
+  .brand-name{ font-size:17px; font-weight:800; letter-spacing:1px; line-height:1.15; }
+  .brand-sub{ font-size:8.5px; letter-spacing:1.6px; color:var(--sub); line-height:1.15; }
+
+  .nav{ flex:1; overflow-y:auto; padding:4px 12px; }
+  .nav-item{
+    width:100%; display:flex; align-items:center; gap:12px;
+    padding:10px 12px; margin-bottom:2px; border-radius:8px;
+    border:1px solid transparent; background:transparent;
+    cursor:pointer; text-align:left; color:var(--sub); font-size:14px;
+    text-decoration:none;
+  }
+  .nav-item.unbuilt{ opacity:.38; cursor:default; }
+  .nav-item svg path, .nav-item svg rect, .nav-item svg line, .nav-item svg circle, .nav-item svg polyline{
+    stroke:var(--sub);
+  }
+  .nav-item.active{
+    border-color:var(--orange);
+    background:rgba(255,90,0,0.10);
+    color:var(--text);
+  }
+  .nav-item.active svg path, .nav-item.active svg rect, .nav-item.active svg line, .nav-item.active svg circle, .nav-item.active svg polyline{
+    stroke:var(--orange2);
+  }
+
+  .sidebar-foot{ padding:24px; display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .operational-label{ font-size:11.5px; letter-spacing:1.5px; color:var(--cyan2); margin-top:4px; }
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    height:64px; border-bottom:1px solid var(--line);
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 28px; background:var(--bg1);
+  }
+  .live-group{ display:flex; align-items:center; gap:10px; }
+  .live-dot{ width:8px; height:8px; border-radius:999px; background:var(--cyan); box-shadow:0 0 8px var(--cyan); }
+  .live-text{ font-size:13px; font-weight:700; letter-spacing:0.5px; }
+  .live-sub{ font-size:13px; color:var(--sub); margin-left:6px; }
+
+  .top-right{ display:flex; align-items:center; gap:26px; }
+  .time-block{ text-align:right; line-height:1.3; }
+  .time-block .time{ font-size:15px; font-variant-numeric: tabular-nums; }
+  .time-block .date{ font-size:12px; color:var(--sub); }
+
+  .bell-wrap{ position:relative; display:flex; }
+  .badge{
+    position:absolute; top:-8px; right:-9px;
+    background:var(--orange); color:#fff; font-size:10px; font-weight:700;
+    border-radius:999px; padding:1px 5px; line-height:13px;
+  }
+
+  .profile{ display:flex; align-items:center; gap:10px; padding-left:14px; border-left:1px solid var(--line); cursor:pointer; }
+  .avatar{
+    width:34px; height:34px; border-radius:999px;
+    background:linear-gradient(135deg, var(--cyan2), var(--orange));
+    display:flex; align-items:center; justify-content:center;
+    font-size:13px; font-weight:700; color:#08100f;
+  }
+  .profile-name{ font-size:13px; line-height:1.3; }
+  .profile-level{ font-size:11px; color:var(--sub); line-height:1.3; }
+
+  /* ---------- Page header / tabs ---------- */
+  .page-title{ font-size:26px; font-weight:700; margin-bottom:18px; }
+  .tabs{ display:flex; gap:28px; border-bottom:1px solid var(--line); margin-bottom:22px; }
+  .tab{
+    background:none; border:none; padding:0 2px 12px; font-size:14.5px;
+    color:var(--sub); border-bottom:2px solid transparent; cursor:pointer;
+  }
+  .tab.active{ color:var(--text); border-bottom-color:var(--orange); font-weight:600; }
+
+  /* ---------- Panels ---------- */
+  .panel{ background:var(--bg1); border:1px solid var(--line); border-radius:12px; }
+  .panel-title{ font-size:15px; font-weight:700; letter-spacing:0.4px; }
+  .panel-sub{ font-size:13px; color:var(--sub); margin-top:4px; }
+
+  .row-top{ display:flex; gap:20px; align-items:flex-start; margin-bottom:26px; flex-wrap:wrap; }
+
+  /* Report Center */
+  .report-center{ padding:24px; flex:1; min-width:420px; }
+  .rc-controls{ display:flex; align-items:flex-end; gap:12px; margin:20px 0 22px; flex-wrap:wrap; }
+
+  .dd, .field-btn{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background:var(--bg2); border:1px solid var(--line); border-radius:8px;
+    padding:10px 12px; color:var(--text); cursor:pointer;
+  }
+  .dd .dd-text, .field-btn .field-text{ display:flex; flex-direction:column; align-items:flex-start; gap:2px; }
+  .dd .dd-label, .field-btn .field-label{ font-size:11px; color:var(--sub); }
+  .dd .dd-value, .field-btn .field-value{ font-size:14px; }
+
+  .btn-primary{
+    margin-left:auto;
+    background:linear-gradient(135deg, var(--cyan2), var(--cyan));
+    border:none; border-radius:8px; padding:12px 20px;
+    color:#062024; font-weight:700; font-size:14px; cursor:pointer;
+  }
+
+  .table-head{
+    display:grid; grid-template-columns: 2.4fr 1fr 1.1fr 1fr 0.8fr;
+    padding:0 4px 12px; border-bottom:1px solid var(--line);
+  }
+  .table-head span{ font-size:11px; letter-spacing:0.8px; color:var(--sub); }
+
+  .table-row{
+    display:grid; grid-template-columns: 2.4fr 1fr 1.1fr 1fr 0.8fr;
+    align-items:center; padding:14px 4px; border-bottom:1px solid var(--line);
+  }
+  .table-row:last-of-type{ border-bottom:none; }
+
+  .rname{ display:flex; align-items:center; gap:12px; }
+  .rname-icon{
+    width:34px; height:34px; border-radius:8px; background:var(--bg2);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .rname-icon svg path, .rname-icon svg rect, .rname-icon svg circle, .rname-icon svg line{ stroke:var(--cyan2); }
+  .rname-title{ font-size:13.5px; }
+  .rname-desc{ font-size:12px; color:var(--sub); margin-top:1px; }
+  .rsys{ font-size:13px; color:var(--sub); }
+  .rdate{ font-size:13px; color:var(--sub); line-height:1.4; }
+
+  .status{ display:inline-flex; align-items:center; gap:6px; font-size:13px; }
+  .status-dot{ width:6px; height:6px; border-radius:999px; display:inline-block; }
+  .status.completed{ color:var(--green); } .status.completed .status-dot{ background:var(--green); }
+  .status.scheduled{ color:var(--amber); } .status.scheduled .status-dot{ background:var(--amber); }
+  .status.failed{ color:var(--red); } .status.failed .status-dot{ background:var(--red); }
+
+  .actions{ display:flex; gap:8px; }
+  .icon-btn{
+    width:30px; height:30px; display:flex; align-items:center; justify-content:center;
+    background:transparent; border:1px solid var(--line); border-radius:6px; cursor:pointer;
+  }
+  .icon-btn:hover{ border-color:var(--cyan2); }
+  .icon-btn svg path, .icon-btn svg polyline, .icon-btn svg rect{ stroke:var(--sub); }
+
+  .pagination{ display:flex; align-items:center; justify-content:space-between; margin-top:18px; }
+  .pagination .info{ font-size:13px; color:var(--sub); }
+  .page-btns{ display:flex; align-items:center; gap:6px; }
+  .page-btn{
+    width:30px; height:30px; border-radius:6px; border:1px solid var(--line);
+    background:transparent; color:var(--sub); font-size:13px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .page-btn.active{ border-color:var(--cyan2); background:rgba(0,217,217,0.12); color:var(--cyan); }
+  .page-btn svg path, .page-btn svg polyline{ stroke:var(--sub); }
+
+  /* Report Overview */
+  .report-overview{ padding:22px; width:380px; flex-shrink:0; }
+  .ro-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
+  .ro-stats{ display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+  .ro-total{ font-size:30px; font-weight:800; color:var(--cyan); }
+  .ro-total-label{ font-size:12.5px; }
+  .ro-total-sub{ font-size:11.5px; color:var(--sub); }
+  .ro-success{ display:flex; align-items:center; gap:12px; }
+  .ro-success-label{ font-size:13px; }
+  .ro-success-sub{ font-size:11.5px; color:var(--sub); }
+
+  .mini-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:22px; }
+  .mini-stat{ background:var(--bg2); border:1px solid var(--line); border-radius:10px; padding:14px; }
+  .mini-icon{ width:26px; height:26px; border-radius:6px; display:flex; align-items:center; justify-content:center; margin-bottom:10px; }
+  .mini-value{ font-size:20px; font-weight:700; }
+  .mini-label{ font-size:11.5px; color:var(--sub); margin-top:1px; }
+
+  .section-label{ font-size:13px; font-weight:700; letter-spacing:0.4px; margin-bottom:14px; }
+  .activity-row{ display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .activity-icon{
+    width:32px; height:32px; border-radius:8px; background:var(--bg2);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .activity-body{ flex:1; min-width:0; }
+  .activity-title{ font-size:13px; }
+  .activity-desc{ font-size:11.5px; color:var(--sub); }
+  .activity-meta{ display:flex; flex-direction:column; align-items:flex-end; gap:5px; }
+  .activity-time{ font-size:11.5px; color:var(--sub); }
+  .activity-dot{ width:6px; height:6px; border-radius:999px; }
+
+  .link-row{
+    width:100%; background:none; border:none; display:flex; align-items:center;
+    justify-content:space-between; color:var(--cyan2); font-size:13px;
+    padding:10px 2px 0; cursor:pointer;
+  }
+  .link-row svg path, .link-row svg polyline, .link-row svg line{ stroke:var(--cyan2); }
+
+  /* Analysis dashboard */
+  .analysis-head{ display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:18px; }
+  .analysis-grid{ display:flex; gap:16px; align-items:stretch; flex-wrap:wrap; }
+  .a-card{ padding:18px; flex:1; min-width:230px; }
+  .a-title{ font-size:11.5px; font-weight:700; letter-spacing:0.6px; }
+  .a-sub{ font-size:11.5px; color:var(--sub); margin:3px 0 10px; }
+  .a-value{ font-size:22px; font-weight:800; margin-bottom:10px; }
+  .a-chart{ height:90px; margin-bottom:6px; }
+  .a-xaxis{ display:flex; justify-content:space-between; font-size:10.5px; color:var(--sub); margin-bottom:10px; }
+  .a-delta{ display:flex; align-items:center; gap:6px; font-size:12.5px; }
+  .a-delta.up{ color:var(--green); } .a-delta.up svg path, .a-delta.up svg polyline{ stroke:var(--green); }
+  .a-delta.down{ color:var(--red); } .a-delta.down svg path, .a-delta.down svg polyline{ stroke:var(--red); }
+
+  .anomaly-card{ padding:18px; flex:1; min-width:230px; display:flex; flex-direction:column; }
+  .anomaly-issues-label{ font-size:11.5px; color:var(--red); margin:3px 0 2px; }
+  .anomaly-count{ font-size:22px; font-weight:800; color:var(--red); margin-bottom:14px; }
+  .anomaly-body{ display:flex; align-items:center; gap:18px; flex:1; }
+  .anomaly-legend{ display:flex; flex-direction:column; gap:10px; }
+  .legend-item{ display:flex; align-items:center; gap:8px; font-size:12.5px; }
+  .legend-dot{ width:8px; height:8px; border-radius:999px; display:inline-block; }
+
+  @media (max-width: 900px){
+    .row-top{ flex-direction:column; }
+    .report-overview{ width:100%; }
+    .report-center{ min-width:0; }
+    .sidebar{ display:none; }
+  }
+</style>
+<div class="app">
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="brand">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+        <path d="M4 20 12 3l8 17-8-4.5L4 20Z" stroke="#00D9D9" stroke-width="1.6" stroke-linejoin="round"/>
+      </svg>
+      <div>
+        <div class="brand-name">NEXUS</div>
+        <div class="brand-sub">CRISIS COMMAND CENTER</div>
+      </div>
+    </div>
+
+    <nav class="nav" id="navList"></nav>
+
+    <div class="sidebar-foot">
+      <svg id="opGauge" width="104" height="104" viewBox="0 0 104 104"></svg>
+      <div class="operational-label">OPERATIONAL</div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <div class="main">
+    <div class="topbar">
+      <div class="live-group">
+        <span class="live-dot"></span>
+        <span class="live-text">LIVE</span>
+        <span class="live-sub">Real-Time Monitoring</span>
+      </div>
+      <div class="top-right">
+        <div class="time-block">
+          <div class="time" id="clockTime">14:35:42</div>
+          <div class="date" id="clockDate">May 26, 2024</div>
+        </div>
+        <div class="bell-wrap">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+            <path d="M6 9a6 6 0 1 1 12 0c0 4 1.5 5.5 1.5 5.5H4.5S6 13 6 9Z" stroke="#8A9198" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10 19a2 2 0 0 0 4 0" stroke="#8A9198" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="badge">12</span>
+        </div>
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="5" width="18" height="14" rx="2" stroke="#8A9198" stroke-width="1.8"/>
+          <path d="m3.5 6 8.5 7 8.5-7" stroke="#8A9198" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+          <path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z" stroke="#8A9198" stroke-width="1.8" stroke-linejoin="round"/>
+          <circle cx="12" cy="13.5" r="3.2" stroke="#8A9198" stroke-width="1.8"/>
+        </svg>
+        <div class="profile">
+          <div class="avatar">O1</div>
+          <div>
+            <div class="profile-name">Operator 01</div>
+            <div class="profile-level">Level 1</div>
+          </div>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+            <polyline points="6 9 12 15 18 9" stroke="#8A9198" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="page-title">Settings</div>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="Reports">Reports</button>
+        <button class="tab" data-tab="Analysis">Analysis</button>
+      </div>
+
+      <div id="reportsPane">
+        <div class="row-top">
+          <!-- Report Center -->
+          <div class="panel report-center">
+            <div class="panel-title">REPORT CENTER</div>
+            <div class="panel-sub">Generate and manage system reports</div>
+
+            <div class="rc-controls">
+              <div class="dd" style="width:168px;">
+                <div class="dd-text"><span class="dd-label">Report Type</span><span class="dd-value">All Types</span></div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><polyline points="6 9 12 15 18 9" stroke="#8A9198" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div class="dd" style="width:168px;">
+                <div class="dd-text"><span class="dd-label">System</span><span class="dd-value">Water System</span></div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><polyline points="6 9 12 15 18 9" stroke="#8A9198" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div class="field-btn" style="width:168px;">
+                <div class="field-text"><span class="field-label">Time Range</span><span class="field-value">Last 7 Days</span></div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <rect x="3.5" y="5" width="17" height="15.5" rx="2" stroke="#8A9198" stroke-width="1.8"/>
+                  <line x1="3.5" y1="9.5" x2="20.5" y2="9.5" stroke="#8A9198" stroke-width="1.8"/>
+                  <line x1="8" y1="3" x2="8" y2="6.5" stroke="#8A9198" stroke-width="1.8" stroke-linecap="round"/>
+                  <line x1="16" y1="3" x2="16" y2="6.5" stroke="#8A9198" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <button class="btn-primary">Generate Report</button>
+            </div>
+
+            <div class="table-head">
+              <span>REPORT NAME</span><span>SYSTEM</span><span>DATE</span><span>STATUS</span><span>ACTIONS</span>
+            </div>
+            <div id="reportRows"></div>
+
+            <div class="pagination">
+              <div class="info">Showing 1 to 5 of 12 reports</div>
+              <div class="page-btns" id="pageBtns"></div>
+            </div>
+          </div>
+
+          <!-- Report Overview -->
+          <div class="panel report-overview">
+            <div class="ro-head">
+              <div class="panel-title">REPORT OVERVIEW</div>
+              <div class="dd" style="width:130px;">
+                <div class="dd-text"><span class="dd-value">Last 7 Days</span></div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><polyline points="6 9 12 15 18 9" stroke="#8A9198" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+            </div>
+
+            <div class="ro-stats">
+              <div>
+                <div class="ro-total">12</div>
+                <div class="ro-total-label">Total Reports</div>
+                <div class="ro-total-sub">Generated</div>
+              </div>
+              <div class="ro-success">
+                <svg id="successGauge" width="64" height="64" viewBox="0 0 64 64"></svg>
+                <div>
+                  <div class="ro-success-label">Success Rate</div>
+                  <div class="ro-success-sub">10 Successful</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mini-grid" id="miniStats"></div>
+
+            <div class="section-label">RECENT ACTIVITY</div>
+            <div id="activityRows"></div>
+
+            <button class="link-row">
+              View All Reports
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><line x1="4" y1="12" x2="20" y2="12" stroke="#00B8B8" stroke-width="1.8" stroke-linecap="round"/><polyline points="14 6 20 12 14 18" stroke="#00B8B8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Analysis Dashboard -->
+        <div class="analysis-head">
+          <div>
+            <div class="panel-title">ANALYSIS DASHBOARD</div>
+            <div class="panel-sub">Deep dive into system performance and trends</div>
+          </div>
+          <div class="dd" style="width:140px;">
+            <div class="dd-text"><span class="dd-value">Last 7 Days</span></div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><polyline points="6 9 12 15 18 9" stroke="#8A9198" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+
+        <div class="analysis-grid" id="analysisGrid"></div>
+      </div>
+
+      <div id="analysisPane" style="display:none;">
+        <div class="panel" style="padding:40px; text-align:center; color:var(--sub);">
+          Analysis settings go here.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  /* ===================== Color tokens ===================== */
+const C = {
+  bg0:"#080A0C", bg1:"#101316", bg2:"#15191D", line:"#2A3035",
+  text:"#F2F2F2", sub:"#8A9198",
+  orange:"#FF5A00", orange2:"#FF7A18", amber:"#FFB020",
+  cyan:"#00D9D9", cyan2:"#00B8B8", green:"#18C77A", red:"#FF3B30"
+};
+
+/* ===================== Icon paths (inner SVG markup) ===================== */
+const ICONS = {
+  dashboard: `<rect x="3" y="3" width="7" height="7" rx="1.3"/><rect x="14" y="3" width="7" height="7" rx="1.3"/><rect x="3" y="14" width="7" height="7" rx="1.3"/><rect x="14" y="14" width="7" height="7" rx="1.3"/>`,
+  map: `<path d="M9 3 3 5.5v15L9 18l6 3 6-2.5v-15L15 6l-6-3z"/><path d="M9 3v15"/><path d="M15 6v15"/>`,
+  traffic: `<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="17" y2="12"/><line x1="3" y1="18" x2="13" y2="18"/>`,
+  power: `<path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z" stroke-linejoin="round"/>`,
+  air: `<path d="M4 8h11a3 3 0 1 0-2.8-4"/><path d="M4 16h14a3 3 0 1 1-2.8 4"/><path d="M2 12h17a3 3 0 1 0-2.8-4"/>`,
+  water: `<path d="M12 3s7 7.5 7 12.2A7 7 0 0 1 5 15.2C5 10.5 12 3 12 3z" stroke-linejoin="round"/>`,
+  transit: `<rect x="4" y="4" width="16" height="13" rx="2.5"/><line x1="4" y1="11" x2="20" y2="11"/><line x1="7.5" y1="20" x2="6" y2="22"/><line x1="16.5" y1="20" x2="18" y2="22"/>`,
+  shield: `<path d="M12 3 4.5 6v6c0 5 3.4 8.4 7.5 9.9 4.1-1.5 7.5-4.9 7.5-9.9V6L12 3z" stroke-linejoin="round"/>`,
+  bell: `<path d="M6 9a6 6 0 1 1 12 0c0 4 1.5 5.5 1.5 5.5H4.5S6 13 6 9Z" stroke-linejoin="round"/><path d="M10 19a2 2 0 0 0 4 0"/>`,
+  reports: `<path d="M7 3h7l4 4v14H7z" stroke-linejoin="round"/><path d="M14 3v4h4"/><line x1="9.5" y1="12" x2="14.5" y2="12"/><line x1="9.5" y1="15.5" x2="14.5" y2="15.5"/>`,
+  settings: `<circle cx="12" cy="12" r="3"/><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.5-2-3.4-2.3.8a7.6 7.6 0 0 0-1.7-1L15 3.5h-4L10.6 6a7.6 7.6 0 0 0-1.7 1L6.6 6.2l-2 3.4L6.6 11a7.5 7.5 0 0 0 0 2l-2 1.5 2 3.4 2.3-.8c.5.4 1.1.75 1.7 1L11 21h4l.4-2.5c.6-.25 1.2-.6 1.7-1l2.3.8 2-3.4L19.4 13Z" stroke-linejoin="round"/>`,
+  download: `<path d="M12 4v11"/><polyline points="7.5 11 12 15.5 16.5 11"/><path d="M4.5 17.5v2a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-2"/>`,
+  fileView: `<path d="M6 3h8l5 5v13H6z" stroke-linejoin="round"/><path d="M14 3v5h5"/>`,
+  trendUp: `<polyline points="4 15 9 9 13 12.5 20 5"/><polyline points="14 5 20 5 20 11"/>`,
+  clock: `<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>`,
+  warnTri: `<path d="M12 3.5 22 20H2L12 3.5Z" stroke-linejoin="round"/><line x1="12" y1="9.5" x2="12" y2="14"/>`,
+  gear: `<circle cx="12" cy="12" r="2.6"/><path d="M19.4 13a7.5 7.5 0 0 0 0-2l1.8-1.4-1.8-3.1-2.1.7a7.6 7.6 0 0 0-1.7-1L15.2 4h-4l-.4 2.2a7.6 7.6 0 0 0-1.7 1l-2.1-.7-1.8 3.1L6.6 11a7.5 7.5 0 0 0 0 2l-1.8 1.4 1.8 3.1 2.1-.7c.5.4 1.1.75 1.7 1l.4 2.2h4l.4-2.2c.6-.25 1.2-.6 1.7-1l2.1.7 1.8-3.1L19.4 13Z" stroke-linejoin="round"/>`,
+  chevronLeft: `<polyline points="15 6 9 12 15 18"/>`,
+  chevronRight: `<polyline points="9 6 15 12 9 18"/>`,
+};
+
+function iconSVG(name, {size=18,color="#8A9198",strokeWidth=1.8} = {}){
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none">
+    <g stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]||""}</g>
+  </svg>`;
+}
+
+/* ===================== Nav ===================== */
+// href:null marks a section with no page built yet — rendered visibly
+// disabled rather than as a link that 404s.
+const NAV = [
+  { key:"dashboard", label:"Dashboard", icon:"dashboard", href:"dashboard.html" },
+  { key:"citymap", label:"City Map", icon:"map", href:"city-map.html" },
+  { key:"traffic", label:"Traffic", icon:"traffic", href:"traffic.html" },
+  { key:"power", label:"Power Grid", icon:"power", href:"power-grid.html" },
+  { key:"air", label:"Air Quality", icon:"air", href:"air-quality.html" },
+  { key:"water", label:"Water System", icon:"water", href:null },
+  { key:"transit", label:"Metro & Transit", icon:"transit", href:null },
+  { key:"security", label:"Security", icon:"shield", href:"security.html" },
+  { key:"alerts", label:"Alerts", icon:"bell", href:"alerts.html" },
+  { key:"reports", label:"Reports", icon:"reports", href:null },
+  { key:"settings", label:"Settings", icon:"settings", href:"settings.html" },
+];
+
+const activeNav = "settings";
+function renderNav(){
+  const el = document.getElementById("navList");
+  el.innerHTML = NAV.map(item => {
+    const isActive = item.key === activeNav;
+    const cls = `nav-item${isActive ? " active" : ""}${item.href ? "" : " unbuilt"}`;
+    const attrs = item.href
+      ? `href="${item.href}"`
+      : `title="No page built for this section yet"`;
+    return `<a class="${cls}" ${attrs}>
+      ${iconSVG(item.icon, {size:18, color: isActive ? C.orange2 : C.sub})}
+      <span>${item.label}</span>
+    </a>`;
+  }).join("");
+}
+renderNav();
+
+/* ===================== Report data ===================== */
+const REPORTS = [
+  { name:"Water System Summary", desc:"Overview of all water operations", sys:"Water System", date:"May 26, 2024", time:"14:30", status:"Completed", icon:"fileView" },
+  { name:"Pump Performance Report", desc:"Pump efficiency and runtime analysis", sys:"Water System", date:"May 26, 2024", time:"12:15", status:"Completed", icon:"gear" },
+  { name:"Water Quality Report", desc:"Quality metrics and compliance", sys:"Water System", date:"May 25, 2024", time:"18:45", status:"Completed", icon:"water" },
+  { name:"Pressure Analysis Report", desc:"Pressure distribution and alerts", sys:"Water System", date:"May 25, 2024", time:"10:20", status:"Completed", icon:"gear" },
+  { name:"Monthly Water Consumption", desc:"Consumption trends and analysis", sys:"Water System", date:"May 24, 2024", time:"09:00", status:"Scheduled", icon:"gear" },
+];
+
+const ACTIVITY = [
+  { name:"Water System Summary", desc:"Generated successfully", time:"14:30", ok:true, icon:"fileView" },
+  { name:"Pump Performance Report", desc:"Generated successfully", time:"12:15", ok:true, icon:"gear" },
+  { name:"Water Quality Report", desc:"Generation failed", time:"10:45", ok:false, icon:"fileView" },
+  { name:"Pressure Analysis Report", desc:"Generated successfully", time:"09:20", ok:true, icon:"gear" },
+];
+
+function statusClass(s){ return s.toLowerCase(); }
+
+function renderReportRows(){
+  const el = document.getElementById("reportRows");
+  el.innerHTML = REPORTS.map(r => `
+    <div class="table-row">
+      <div class="rname">
+        <div class="rname-icon">${iconSVG(r.icon, {size:16, color:C.cyan2, strokeWidth:1.6})}</div>
+        <div>
+          <div class="rname-title">${r.name}</div>
+          <div class="rname-desc">${r.desc}</div>
+        </div>
+      </div>
+      <div class="rsys">${r.sys}</div>
+      <div class="rdate">${r.date}<br/>${r.time}</div>
+      <div class="status ${statusClass(r.status)}"><span class="status-dot"></span>${r.status}</div>
+      <div class="actions">
+        <button class="icon-btn" title="Download">${iconSVG("download",{size:15})}</button>
+        <button class="icon-btn" title="View">${iconSVG("fileView",{size:15})}</button>
+      </div>
+    </div>
+  `).join("");
+}
+renderReportRows();
+
+let currentPage = 1;
+function renderPagination(){
+  const el = document.getElementById("pageBtns");
+  const pages = [1,2,3];
+  el.innerHTML = `
+    <button class="page-btn" id="prevPage">${iconSVG("chevronLeft",{size:15,strokeWidth:2})}</button>
+    ${pages.map(n=>`<button class="page-btn ${n===currentPage?'active':''}" data-page="${n}">${n}</button>`).join("")}
+    <button class="page-btn" id="nextPage">${iconSVG("chevronRight",{size:15,strokeWidth:2})}</button>
+  `;
+  el.querySelectorAll("[data-page]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{ currentPage = parseInt(btn.dataset.page); renderPagination(); });
+  });
+  document.getElementById("prevPage").addEventListener("click", ()=>{ currentPage = Math.max(1,currentPage-1); renderPagination(); });
+  document.getElementById("nextPage").addEventListener("click", ()=>{ currentPage = Math.min(3,currentPage+1); renderPagination(); });
+}
+renderPagination();
+
+/* ===================== Report Overview ===================== */
+const MINI_STATS = [
+  { icon:"trendUp", color:C.green, value:"8", label:"Completed" },
+  { icon:"clock", color:C.amber, value:"2", label:"Scheduled" },
+  { icon:"warnTri", color:C.red, value:"1", label:"Failed" },
+  { icon:"gear", color:C.cyan2, value:"1", label:"In Progress" },
+];
+document.getElementById("miniStats").innerHTML = MINI_STATS.map(m => `
+  <div class="mini-stat">
+    <div class="mini-icon" style="background:${m.color}1f;">${iconSVG(m.icon,{size:14,color:m.color,strokeWidth:1.9})}</div>
+    <div class="mini-value">${m.value}</div>
+    <div class="mini-label">${m.label}</div>
+  </div>
+`).join("");
+
+document.getElementById("activityRows").innerHTML = ACTIVITY.map(a => `
+  <div class="activity-row">
+    <div class="activity-icon">${iconSVG(a.icon,{size:15,color:a.ok?C.cyan2:C.red,strokeWidth:1.7})}</div>
+    <div class="activity-body">
+      <div class="activity-title">${a.name}</div>
+      <div class="activity-desc">${a.desc}</div>
+    </div>
+    <div class="activity-meta">
+      <div class="activity-time">${a.time}</div>
+      <span class="activity-dot" style="background:${a.ok?C.green:C.red};"></span>
+    </div>
+  </div>
+`).join("");
+
+/* ===================== SVG chart helpers ===================== */
+function seriesFromSeed(seed, n, base, spread){
+  let s = seed;
+  const rand = () => { s = (s*9301+49297) % 233280; return s/233280; };
+  const arr = []; let v = base;
+  for(let i=0;i<n;i++){ v = v + (rand()-0.5)*spread; arr.push(v); }
+  return arr;
+}
+
+function lineSparkSVG(data, {w=260,h=90,color=C.cyan,strokeWidth=2} = {}){
+  const min = Math.min(...data), max = Math.max(...data), range = (max-min)||1;
+  const pts = data.map((v,i)=>{
+    const x = (i/(data.length-1))*w;
+    const y = h - ((v-min)/range)*(h-8) - 4;
+    return [x,y];
+  });
+  const path = pts.map((p,i)=> (i===0?'M':'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+  const areaPath = `${path} L${w},${h} L0,${h} Z`;
+  const gradId = 'grad-' + color.replace('#','');
+  return `<svg width="100%" height="100%" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="display:block;overflow:visible;">
+    <defs>
+      <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${color}" stop-opacity="0.35"/>
+        <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <path d="${areaPath}" fill="url(#${gradId})" stroke="none"/>
+    <path d="${path}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linejoin="round" stroke-linecap="round"/>
+  </svg>`;
+}
+
+function barSparkSVG(data, {w=260,h=90,color=C.cyan2} = {}){
+  const max = Math.max(...data,1);
+  const gap = 8;
+  const bw = (w - gap*(data.length-1)) / data.length;
+  const bars = data.map((v,i)=>{
+    const bh = (v/max)*(h-6);
+    const x = i*(bw+gap);
+    const y = h-bh;
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="${color}" opacity="0.85"/>`;
+  }).join('');
+  return `<svg width="100%" height="100%" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="display:block;">${bars}</svg>`;
+}
+
+function donutSVG(segments, {size=110,thickness=18} = {}){
+  const total = segments.reduce((s,x)=>s+x.value,0);
+  const r = (size-thickness)/2, cx=size/2, cy=size/2;
+  const circumference = 2*Math.PI*r;
+  let acc = 0;
+  const circles = segments.map(seg=>{
+    const frac = seg.value/total;
+    const dash = frac*circumference;
+    const gap = circumference-dash;
+    const rotation = (acc/total)*360 - 90;
+    acc += seg.value;
+    return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${seg.color}" stroke-width="${thickness}"
+      stroke-dasharray="${dash} ${gap}" stroke-linecap="butt" transform="rotate(${rotation} ${cx} ${cy})"/>`;
+  }).join('');
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${C.bg2}" stroke-width="${thickness}"/>
+    ${circles}
+  </svg>`;
+}
+
+function ringGaugeSVG(value, {size=104,thickness=9,color=C.cyan} = {}){
+  const r = (size-thickness)/2, cx=size/2, cy=size/2;
+  const circumference = 2*Math.PI*r;
+  const dash = (value/100)*circumference;
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${C.bg2}" stroke-width="${thickness}"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="${thickness}"
+      stroke-linecap="round" stroke-dasharray="${dash} ${circumference-dash}" transform="rotate(-90 ${cx} ${cy})"/>
+    <text x="50%" y="52%" text-anchor="middle" dominant-baseline="middle" fill="${C.text}" font-size="${size*0.22}" font-weight="700" font-family="Inter, sans-serif">${value}%</text>`;
+}
+
+/* Sidebar operational ring */
+document.getElementById("opGauge").innerHTML = ringGaugeSVG(91, {size:104, thickness:9, color:C.cyan});
+/* Success rate ring */
+document.getElementById("successGauge").innerHTML = ringGaugeSVG(83, {size:64, thickness:7, color:C.cyan});
+
+/* ===================== Analysis Dashboard ===================== */
+const consumption = seriesFromSeed(11, 24, 1.0e6, 2.4e5);
+const pressure = seriesFromSeed(22, 24, 3.6, 0.5);
+const quality = seriesFromSeed(33, 24, 95, 2.5);
+const efficiency = [72,84,78,90,92,86];
+
+const ANALYSIS_CARDS = [
+  { title:"WATER CONSUMPTION TREND", sub:"Total Consumption", value:"8,732,000 L", delta:"12.5%", up:true, chart: lineSparkSVG(consumption,{color:C.cyan}) },
+  { title:"AVERAGE PRESSURE", sub:"Average Pressure", value:"3.6 bar", delta:"5.2%", up:true, chart: lineSparkSVG(pressure,{color:C.cyan}) },
+  { title:"PUMP EFFICIENCY", sub:"Average Efficiency", value:"92%", delta:"1.3%", up:false, chart: barSparkSVG(efficiency,{color:C.cyan2}) },
+  { title:"WATER QUALITY INDEX", sub:"Average Quality Index", value:"96%", delta:"2.7%", up:true, chart: lineSparkSVG(quality,{color:C.cyan}) },
+];
+
+const trendUpSVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><g stroke="${C.green}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 15 9 9 13 12.5 20 5"/><polyline points="14 5 20 5 20 11"/></g></svg>`;
+const trendDownSVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><g stroke="${C.red}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 9 9 15 13 11.5 20 19"/><polyline points="20 13 20 19 14 19"/></g></svg>`;
+
+let analysisHTML = ANALYSIS_CARDS.map(c => `
+  <div class="panel a-card">
+    <div class="a-title">${c.title}</div>
+    <div class="a-sub">${c.sub}</div>
+    <div class="a-value">${c.value}</div>
+    <div class="a-chart">${c.chart}</div>
+    <div class="a-xaxis"><span>May 20</span><span>May 22</span><span>May 24</span><span>May 26</span></div>
+    <div class="a-delta ${c.up?'up':'down'}">${c.up?trendUpSVG:trendDownSVG} ${c.delta} vs Previous 7 Days</div>
+  </div>
+`).join('');
+
+const anomalySegments = [
+  { label:"Critical", value:2, color:C.red },
+  { label:"Warning", value:2, color:C.amber },
+  { label:"Info", value:1, color:C.cyan2 },
+];
+
+analysisHTML += `
+  <div class="panel anomaly-card">
+    <div class="a-title">ANOMALY DETECTION</div>
+    <div class="anomaly-issues-label">Detected Issues</div>
+    <div class="anomaly-count">5</div>
+    <div class="anomaly-body">
+      ${donutSVG(anomalySegments,{size:110,thickness:18})}
+      <div class="anomaly-legend">
+        ${anomalySegments.map(s=>`<div class="legend-item"><span class="legend-dot" style="background:${s.color};"></span>${s.value} ${s.label}</div>`).join('')}
+      </div>
+    </div>
+    <button class="link-row" style="padding-top:14px;">
+      View Detailed Analysis
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><line x1="4" y1="12" x2="20" y2="12" stroke="${C.cyan2}" stroke-width="1.8" stroke-linecap="round"/><polyline points="14 6 20 12 14 18" stroke="${C.cyan2}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+`;
+
+document.getElementById("analysisGrid").innerHTML = analysisHTML;
+
+/* ===================== Tabs ===================== */
+document.querySelectorAll(".tab").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    const isReports = btn.dataset.tab === "Reports";
+    document.getElementById("reportsPane").style.display = isReports ? "block" : "none";
+    document.getElementById("analysisPane").style.display = isReports ? "none" : "block";
+  });
+});
+
+/* ===================== Live clock ===================== */
+function pad(n){ return n.toString().padStart(2,"0"); }
+function updateClock(){
+  const now = new Date();
+  const h = pad(now.getHours()), m = pad(now.getMinutes()), s = pad(now.getSeconds());
+  document.getElementById("clockTime").textContent = `${h}:${m}:${s}`;
+  const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  document.getElementById("clockDate").textContent = `${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+}
+updateClock();
+setInterval(updateClock, 1000);
+</script>
+</body>
+</html>

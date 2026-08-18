@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NEXUS — Dashboard</title>
+</head>
+<body>
+  <style>
+    :root{
+    --bg:#080A0C;
+    --panel:#101316;
+    --panel2:#15191D;
+    --border:#2A3035;
+    --text:#F2F2F2;
+    --muted:#8A9198;
+    --orange:#FF5A00;
+    --orange2:#FF7A18;
+    --yellow:#FFB020;
+    --cyan:#00D9D9;
+    --cyan2:#00B8B8;
+    --green:#18C77A;
+    --red:#FF3B30;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:"Inter","Segoe UI",Helvetica,Arial,sans-serif;
+    height:100%;
+    -webkit-font-smoothing:antialiased;
+  }
+  @keyframes fadeUp{
+    from{opacity:0;transform:translateY(10px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+  .stat-card, .panel{
+    animation:fadeUp .5s ease both;
+  }
+  a{color:inherit;text-decoration:none;}
+  ul{list-style:none;}
+  svg{display:block;}
+
+  .app{
+    display:flex;
+    min-height:100vh;
+    width:100%;
+  }
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar{
+    width:212px;
+    flex:0 0 212px;
+    background:var(--panel);
+    border-right:1px solid var(--border);
+    display:flex;
+    flex-direction:column;
+    padding:22px 16px;
+  }
+  .logo{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:0 6px 22px 6px;
+    border-bottom:1px solid var(--border);
+    margin-bottom:18px;
+  }
+  .logo-mark{
+    width:30px;height:30px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .logo-text .name{
+    font-size:16px;
+    font-weight:800;
+    letter-spacing:2px;
+    color:var(--text);
+    line-height:1;
+  }
+  .logo-text .sub{
+    font-size:8.5px;
+    letter-spacing:2.5px;
+    color:var(--muted);
+    margin-top:3px;
+  }
+  .nav{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    flex:1;
+  }
+  .nav-item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:10px 12px;
+    border-radius:8px;
+    font-size:13.5px;
+    color:var(--muted);
+    cursor:pointer;
+    transition:.15s;
+  }
+  .nav-item svg{width:17px;height:17px;flex:0 0 17px;}
+  .nav-item:hover{color:var(--text);background:rgba(255,255,255,.03);}
+  .nav-item.unbuilt{opacity:.38;cursor:default;}
+  .nav-item.unbuilt:hover{background:none;color:var(--muted);}
+  .nav-item.active{
+    color:var(--cyan);
+    background:rgba(0,217,217,.08);
+    border:1px solid rgba(0,217,217,.35);
+  }
+  .sidebar-bottom{
+    padding-top:22px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+  }
+  .ring-wrap{position:relative;width:112px;height:112px;}
+  .ring-label{
+    position:absolute;inset:0;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+  }
+  .ring-label .pct{font-size:22px;font-weight:800;color:var(--cyan);}
+  .op-label{
+    margin-top:10px;
+    font-size:10px;
+    letter-spacing:2.5px;
+    color:var(--muted);
+    font-weight:700;
+  }
+
+  /* ---------- MAIN ---------- */
+  .main{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+    padding:18px 22px 22px 22px;
+    gap:16px;
+  }
+
+  /* topbar */
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 2px 16px 2px;
+    border-bottom:1px solid var(--border);
+  }
+  .live-chip{
+    display:flex;align-items:center;gap:8px;
+    font-size:12.5px;font-weight:700;letter-spacing:.5px;
+  }
+  .dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--cyan);
+    box-shadow:0 0 8px var(--cyan);
+    animation:pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+  .live-chip .sub{color:var(--muted);font-weight:500;margin-left:2px;}
+  .topbar-center{
+    text-align:center;
+  }
+  .topbar-center .time{font-size:15px;font-weight:700;}
+  .topbar-center .date{font-size:11px;color:var(--muted);margin-top:2px;}
+  .topbar-right{
+    display:flex;align-items:center;gap:22px;
+  }
+  .icon-btn{position:relative;color:var(--muted);cursor:pointer;}
+  .icon-btn svg{width:19px;height:19px;}
+  .badge{
+    position:absolute;top:-7px;right:-8px;
+    background:var(--orange);
+    color:#fff;
+    font-size:9px;font-weight:800;
+    border-radius:8px;
+    padding:1.5px 5px;
+    line-height:1.3;
+  }
+  .profile{
+    display:flex;align-items:center;gap:9px;
+    padding-left:18px;
+    border-left:1px solid var(--border);
+    cursor:pointer;
+  }
+  .avatar{
+    width:34px;height:34px;border-radius:50%;
+    background:linear-gradient(135deg,#3a4148,#20242a);
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:700;color:var(--cyan);
+    border:1px solid var(--border);
+  }
+  .profile .op-name{font-size:12.5px;font-weight:700;}
+  .profile .op-level{font-size:10.5px;color:var(--muted);}
+  .chev{width:12px;height:12px;color:var(--muted);margin-left:2px;}
+
+  /* stat cards */
+  .stats-row{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:14px;
+  }
+  .stat-card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:14px 16px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    transition:transform .28s cubic-bezier(.2,.8,.2,1), border-color .28s ease, box-shadow .28s ease, background .28s ease;
+  }
+  .stat-card:hover{
+    transform:translateY(-4px);
+    border-color:rgba(0,217,217,.4);
+    box-shadow:0 12px 28px -12px rgba(0,0,0,.55), 0 0 0 1px rgba(0,217,217,.08);
+    background:var(--panel2);
+  }
+  .stat-icon{
+    transition:transform .28s cubic-bezier(.2,.8,.2,1);
+  }
+  .stat-card:hover .stat-icon{
+    transform:scale(1.08) rotate(-2deg);
+  }
+  .spark path{
+    transition:stroke-width .25s ease;
+  }
+  .stat-card:hover .spark path{
+    stroke-width:2.6;
+  }
+  .stat-top{display:flex;align-items:center;gap:8px;}
+  .stat-icon{
+    width:28px;height:28px;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    flex:0 0 28px;
+  }
+  .stat-icon svg{width:15px;height:15px;}
+  .stat-label{font-size:9.5px;letter-spacing:1.4px;color:var(--muted);font-weight:700;}
+  .stat-value{display:flex;align-items:baseline;gap:6px;}
+  .stat-value .num{font-size:22px;font-weight:800;}
+  .stat-value .aqi-tag{font-size:9px;color:var(--muted);font-weight:700;letter-spacing:1px;}
+  .stat-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .stat-status{font-size:11px;color:var(--muted);}
+  .spark{width:52px;height:20px;}
+
+  /* content grid */
+  .content-grid{
+    display:grid;
+    grid-template-columns:1fr 320px;
+    gap:16px;
+  }
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:12px;
+    transition:border-color .3s ease, box-shadow .3s ease;
+  }
+  .panel:hover{
+    border-color:rgba(0,217,217,.3);
+    box-shadow:0 14px 34px -18px rgba(0,0,0,.6);
+  }
+  .panel-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 16px;
+    border-bottom:1px solid var(--border);
+  }
+  .panel-title{
+    font-size:11px;letter-spacing:1.5px;font-weight:800;color:var(--text);
+    display:flex;align-items:center;gap:8px;
+  }
+  .panel-title svg{width:14px;height:14px;color:var(--cyan);}
+  .view-all{font-size:11px;color:var(--cyan);font-weight:700;cursor:pointer;transition:opacity .2s ease, transform .2s ease;}
+  .view-all:hover{opacity:.7;transform:translateX(2px);}
+
+  /* map area */
+  .map-card{position:relative;overflow:hidden;min-height:520px;}
+  .map-canvas{
+    position:relative;
+    width:100%;
+    height:520px;
+    background:
+      radial-gradient(circle at 78% 30%, rgba(255,90,0,.10), transparent 40%),
+      linear-gradient(#0b0e11,#0b0e11);
+  }
+  .map-canvas svg{width:100%;height:100%;}
+
+  .map-layers{
+    position:absolute;
+    top:14px;left:14px;
+    width:150px;
+    background:rgba(16,19,22,.92);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:12px 12px 10px 12px;
+    backdrop-filter:blur(6px);
+    z-index:5;
+  }
+  .map-layers-title{
+    font-size:9.5px;letter-spacing:1.3px;color:var(--muted);font-weight:800;margin-bottom:9px;
+  }
+  .layer-item{
+    display:flex;align-items:center;gap:8px;
+    font-size:11.5px;color:var(--text);
+    padding:3px 4px;
+    border-radius:5px;
+    transition:background .2s ease, transform .2s ease;
+  }
+  .layer-item:hover{
+    background:rgba(0,217,217,.08);
+    transform:translateX(2px);
+  }
+  .chk{
+    width:13px;height:13px;border-radius:3px;
+    background:var(--cyan2);
+    display:flex;align-items:center;justify-content:center;
+    flex:0 0 13px;
+  }
+  .chk svg{width:9px;height:9px;color:#06171a;}
+  .layer-clear{
+    margin-top:9px;padding-top:8px;border-top:1px solid var(--border);
+    font-size:11px;color:var(--muted);text-align:center;cursor:pointer;
+  }
+
+  .map-zoom{
+    position:absolute;right:14px;top:250px;
+    display:flex;flex-direction:column;
+    background:rgba(16,19,22,.92);
+    border:1px solid var(--border);
+    border-radius:8px;overflow:hidden;
+    z-index:5;
+  }
+  .map-zoom div{
+    width:28px;height:28px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:15px;color:var(--muted);
+    cursor:pointer;
+    border-bottom:1px solid var(--border);
+    transition:background .2s ease, color .2s ease;
+  }
+  .map-zoom div:hover{
+    background:rgba(0,217,217,.12);
+    color:var(--cyan);
+  }
+  .map-zoom div:last-child{border-bottom:none;}
+
+  /* right column stack */
+  .right-col{display:flex;flex-direction:column;gap:16px;}
+
+  .alert-item, .zone-item{
+    display:flex;gap:10px;
+    padding:11px 16px;
+    border-bottom:1px solid var(--border);
+    transition:background .2s ease, padding-left .2s ease;
+  }
+  .alert-item:last-child, .zone-item:last-child{border-bottom:none;}
+  .alert-item:hover, .zone-item:hover{
+    background:rgba(255,255,255,.025);
+    padding-left:20px;
+  }
+  .alert-ico, .zone-badge{transition:transform .25s cubic-bezier(.2,.8,.2,1);}
+  .alert-item:hover .alert-ico, .zone-item:hover .zone-badge{transform:scale(1.1);}
+  .alert-ico{
+    width:26px;height:26px;border-radius:7px;
+    display:flex;align-items:center;justify-content:center;
+    flex:0 0 26px;
+  }
+  .alert-ico svg{width:13px;height:13px;}
+  .alert-text{flex:1;min-width:0;}
+  .alert-title{font-size:12px;font-weight:700;}
+  .alert-sub{font-size:10.5px;color:var(--muted);margin-top:1px;}
+  .alert-time{font-size:10px;color:var(--muted);white-space:nowrap;align-self:center;}
+
+  .zone-badge{
+    width:32px;height:26px;border-radius:6px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:11.5px;font-weight:800;
+    flex:0 0 32px;
+  }
+  .zone-level{font-size:12px;font-weight:800;}
+  .zone-detail{font-size:10.5px;color:var(--muted);margin-top:1px;}
+
+  /* charts row */
+  .charts-row{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:16px;
+  }
+  .chart-card{padding:14px 16px 12px 16px;}
+  .chart-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2px;}
+  .chart-title{font-size:11px;font-weight:800;letter-spacing:.5px;}
+  .chart-range{font-size:10px;color:var(--muted);}
+  .chart-num{font-size:20px;font-weight:800;margin:2px 0 4px 0;}
+  .chart-svg{width:100%;height:96px;}
+  .chart-xaxis{
+    display:flex;justify-content:space-between;
+    font-size:9px;color:var(--muted);
+    margin-top:2px;
+  }
+  .chart-yaxis{
+    position:relative;
+  }
+
+  /* sensor network */
+  .sensor-card{padding:14px 16px;}
+  .sensor-grid{
+    display:grid;grid-template-columns:1fr 1fr 1fr;
+    gap:10px;margin:6px 0 14px 0;
+  }
+  .sensor-num{font-size:19px;font-weight:800;}
+  .sensor-label{font-size:9.5px;color:var(--muted);margin-top:2px;}
+  .quality-row{
+    display:flex;align-items:center;justify-content:space-between;
+    font-size:11px;color:var(--muted);margin-bottom:6px;
+  }
+  .quality-row .val{color:var(--green);font-weight:800;font-size:16px;}
+  .bar-track{
+    width:100%;height:6px;border-radius:4px;
+    background:var(--border);overflow:hidden;
+  }
+  .bar-fill{height:100%;background:linear-gradient(90deg,var(--cyan2),var(--green));border-radius:4px;transition:width .6s cubic-bezier(.2,.8,.2,1);}
+  .sync-row{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-top:14px;padding-top:12px;border-top:1px solid var(--border);
+    font-size:10.5px;color:var(--muted);
+  }
+  .sync-row .live{color:var(--cyan);font-weight:700;display:flex;align-items:center;gap:5px;}
+
+  /* live feed */
+  .feed-bar{
+    display:flex;align-items:center;
+    padding:13px 18px;
+    gap:34px;
+    overflow:hidden;
+  }
+  .feed-title{
+    display:flex;align-items:center;gap:8px;
+    font-size:11px;font-weight:800;letter-spacing:1px;
+    flex:0 0 auto;
+  }
+  .feed-events{
+    display:flex;align-items:center;gap:34px;flex:1;overflow:hidden;
+  }
+  .feed-event{display:flex;flex-direction:column;flex:0 0 auto;transition:transform .2s ease, opacity .2s ease;}
+  .feed-event:hover{transform:translateY(-2px);opacity:.85;}
+  .feed-time{font-size:10px;color:var(--muted);}
+  .feed-desc{font-size:11.5px;font-weight:700;}
+  .feed-loc{font-size:10px;color:var(--muted);}
+  .feed-more{
+    display:flex;align-items:center;gap:6px;
+    font-size:11px;color:var(--cyan);font-weight:700;white-space:nowrap;cursor:pointer;
+  }
+  .feed-more svg{width:12px;height:12px;}
+  </style>
+<div class="app">
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 20 L12 3 L20 20 L12 15 Z" stroke="#00D9D9" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="logo-text">
+        <div class="name">NEXUS</div>
+        <div class="sub">CRISIS COMMAND CENTER</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <a class="nav-item active" href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Dashboard</a>
+      <a class="nav-item" href="city-map.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11h18M3 6h18M3 16h18" opacity=".5"/><circle cx="7" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="11" r="1.4" fill="currentColor" stroke="none"/><circle cx="10" cy="16" r="1.4" fill="currentColor" stroke="none"/></svg>City Map</a>
+      <a class="nav-item" href="traffic.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M3 12h12M3 18h16"/></svg>Traffic</a>
+      <a class="nav-item" href="power-grid.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2 L4 14h6l-1 8 9-12h-6z"/></svg>Power Grid</a>
+      <a class="nav-item" href="air-quality.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9.5 2C7 6 4 9 4 13a5.5 5.5 0 0 0 11 0c0-4-3-7-5.5-11z"/></svg>Air Quality</a>
+      <a class="nav-item unbuilt" title="No page built for this section yet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-6-5.2-6-10a6 6 0 0 1 12 0c0 4.8-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg>Water System</a>
+      <a class="nav-item unbuilt" title="No page built for this section yet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="3" width="14" height="15" rx="3"/><circle cx="8.5" cy="19.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="15.5" cy="19.5" r="1.2" fill="currentColor" stroke="none"/><path d="M5 12h14"/></svg>Metro &amp; Transit</a>
+      <a class="nav-item" href="security.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2 4 5v6c0 5 3.4 8.7 8 11 4.6-2.3 8-6 8-11V5z"/></svg>Security</a>
+      <a class="nav-item" href="alerts.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>Alerts</a>
+      <a class="nav-item unbuilt" title="No page built for this section yet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>Reports</a>
+      <a class="nav-item" href="settings.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1.5 1z"/></svg>Settings</a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="ring-wrap">
+        <svg viewBox="0 0 112 112" width="112" height="112">
+          <circle cx="56" cy="56" r="48" fill="none" stroke="#2A3035" stroke-width="8"/>
+          <circle cx="56" cy="56" r="48" fill="none" stroke="#00D9D9" stroke-width="8" stroke-linecap="round"
+            stroke-dasharray="301.6" stroke-dashoffset="24.1" transform="rotate(-90 56 56)"/>
+        </svg>
+        <div class="ring-label"><div class="pct">92%</div></div>
+      </div>
+      <div class="op-label">OPERATIONAL</div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main class="main">
+
+    <!-- topbar -->
+    <div class="topbar">
+      <div class="live-chip">
+        <span class="dot"></span>LIVE <span class="sub">Real-Time Monitoring</span>
+      </div>
+      <div class="topbar-center">
+        <div class="time">14:35:42</div>
+        <div class="date">May 25, 2024</div>
+      </div>
+      <div class="topbar-right">
+        <div class="icon-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          <span class="badge">12</span>
+        </div>
+        <div class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></div>
+        <div class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.4"/></svg></div>
+        <div class="profile">
+          <div class="avatar">O1</div>
+          <div>
+            <div class="op-name">Operator 01</div>
+            <div class="op-level">Level 7</div>
+          </div>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- stat cards -->
+    <div class="stats-row" id="statsRow"></div>
+
+    <!-- map + right column -->
+    <div class="content-grid">
+
+      <!-- MAP -->
+      <div class="panel map-card">
+        <div class="map-canvas" id="mapCanvas"></div>
+
+        <div class="map-layers">
+          <div class="map-layers-title">MAP LAYERS</div>
+          <div class="layer-item"><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Traffic</div>
+          <div class="layer-item"><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Air Quality</div>
+          <div class="layer-item"><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Power Grid</div>
+          <div class="layer-item"><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Water System</div>
+          <div class="layer-item"><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Metro</div>
+          <div class="layer-item"><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Security Cameras</div>
+          <div class="layer-clear">Clear All</div>
+        </div>
+
+        <div class="map-zoom">
+          <div>+</div>
+          <div>&minus;</div>
+          <div style="border-bottom:none;">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#8A9198" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN: alerts + critical zones -->
+      <div class="right-col">
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">LIVE ALERTS</div>
+            <div class="view-all">View All</div>
+          </div>
+          <div id="alertsList"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">CRITICAL ZONES</div>
+            <div class="view-all">View All</div>
+          </div>
+          <div id="zonesList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- charts + sensor network -->
+    <div class="content-grid">
+      <div class="charts-row" id="chartsRow"></div>
+
+      <div class="panel sensor-card">
+        <div class="panel-title" style="margin-bottom:10px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12a8 8 0 0 1 16 0M7 12a5 5 0 0 1 10 0"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/></svg>
+          SENSOR NETWORK
+        </div>
+        <div class="sensor-grid">
+          <div><div class="sensor-num" style="color:#00D9D9;">982</div><div class="sensor-label">Active</div></div>
+          <div><div class="sensor-num" style="color:#FFB020;">12</div><div class="sensor-label">Delayed</div></div>
+          <div><div class="sensor-num" style="color:#FF3B30;">4</div><div class="sensor-label">Corrupted</div></div>
+        </div>
+        <div class="quality-row"><span>Data Quality</span><span class="val">96%</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:96%;"></div></div>
+        <div class="sync-row">
+          <span>Last Sync: 14:35:42</span>
+          <span class="live"><span class="dot" style="width:6px;height:6px;"></span>Live</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- live feed -->
+    <div class="panel feed-bar">
+      <div class="feed-title"><span class="dot"></span>LIVE FEED</div>
+      <div class="feed-events">
+        <div class="feed-event"><div class="feed-time">14:35:01</div><div class="feed-desc">Accident Reported</div><div class="feed-loc">District C3</div></div>
+        <div class="feed-event"><div class="feed-time">14:35:05</div><div class="feed-desc">Power Node Recovered</div><div class="feed-loc">District D1</div></div>
+        <div class="feed-event"><div class="feed-time">14:35:10</div><div class="feed-desc">AQI Updated</div><div class="feed-loc">District B4</div></div>
+        <div class="feed-event"><div class="feed-time">14:35:15</div><div class="feed-desc">Traffic Congestion</div><div class="feed-loc">District A2</div></div>
+      </div>
+      <div class="feed-more">View All Feed
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg>
+      </div>
+    </div>
+
+  </main>
+</div>
+<script>
+  /* ---------------- STAT CARDS ---------------- */
+const stats = [
+  {label:"TRAFFIC", value:"82%", status:"Heavy Traffic", color:"var(--orange)", bg:"rgba(255,90,0,.12)",
+    icon:'<path d="M5 16l1.5-5A2 2 0 0 1 8.4 9.5h7.2A2 2 0 0 1 17.5 11L19 16"/><rect x="4" y="16" width="16" height="3.2" rx="1"/><circle cx="7.5" cy="19.6" r="1.4" fill="currentColor" stroke="none"/><circle cx="16.5" cy="19.6" r="1.4" fill="currentColor" stroke="none"/>',
+    spark:[20,30,25,40,55,42,60,48,65,58,70,62,75,68,72,80,74,82], sparkColor:"#FF5A00"},
+  {label:"AIR QUALITY", value:"185", tag:"AQI", status:"Unhealthy", color:"var(--orange2)", bg:"rgba(255,122,24,.12)",
+    icon:'<path d="M9.5 2C7 6 4 9 4 13a5.5 5.5 0 0 0 11 0c0-4-3-7-5.5-11z"/>',
+    spark:[30,25,45,35,55,40,60,50,72,58,65,55,68,60,75,70,78,74], sparkColor:"#FF7A18"},
+  {label:"POWER GRID", value:"76%", status:"Stable", color:"var(--yellow)", bg:"rgba(255,176,32,.12)",
+    icon:'<path d="M13 2 L4 14h6l-1 8 9-12h-6z"/>',
+    spark:[45,50,42,55,48,60,52,58,50,62,55,60,54,58,52,56,60,58], sparkColor:"#FFB020"},
+  {label:"WATER SYSTEM", value:"91%", status:"Stable", color:"var(--cyan)", bg:"rgba(0,217,217,.12)",
+    icon:'<path d="M12 21s-6-5.2-6-10a6 6 0 0 1 12 0c0 4.8-6 10-6 10z"/>',
+    spark:[55,60,58,65,62,68,64,70,66,72,70,74,72,76,74,78,80,82], sparkColor:"#00D9D9"},
+  {label:"METRO SYSTEM", value:"94%", status:"Operational", color:"var(--green)", bg:"rgba(24,199,122,.12)",
+    icon:'<rect x="5" y="3" width="14" height="15" rx="3"/><circle cx="8.5" cy="19.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="15.5" cy="19.5" r="1.2" fill="currentColor" stroke="none"/><path d="M5 12h14"/>',
+    spark:[60,65,62,70,68,74,70,76,72,78,76,80,78,82,80,84,86,88], sparkColor:"#18C77A"},
+  {label:"SECURITY", value:"98%", status:"Online", color:"var(--cyan)", bg:"rgba(0,217,217,.12)",
+    icon:'<path d="M12 2 4 5v6c0 5 3.4 8.7 8 11 4.6-2.3 8-6 8-11V5z"/><path d="M9 12l2 2 4-4"/>',
+    spark:[70,74,72,78,76,80,78,82,80,84,82,86,84,88,86,90,92,94], sparkColor:"#00D9D9"},
+];
+
+function sparkPath(data,w,h){
+  const max = Math.max(...data), min = Math.min(...data);
+  const step = w/(data.length-1);
+  return data.map((v,i)=>{
+    const x = i*step;
+    const y = h - ((v-min)/(max-min||1))*h;
+    return (i===0?"M":"L")+x.toFixed(1)+","+y.toFixed(1);
+  }).join(" ");
+}
+
+const statsRow = document.getElementById("statsRow");
+stats.forEach(s=>{
+  const path = sparkPath(s.spark,52,20);
+  const el = document.createElement("div");
+  el.className = "stat-card";
+  el.innerHTML = `
+    <div class="stat-top">
+      <div class="stat-icon" style="background:${s.bg};color:${s.color};">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">${s.icon}</svg>
+      </div>
+      <div class="stat-label">${s.label}</div>
+    </div>
+    <div class="stat-value">
+      <div class="num">${s.value}</div>
+      ${s.tag ? `<div class="aqi-tag">${s.tag}</div>` : ""}
+    </div>
+    <div class="stat-bottom">
+      <div class="stat-status">${s.status}</div>
+      <svg class="spark" viewBox="0 0 52 20"><path d="${path}" fill="none" stroke="${s.sparkColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+  `;
+  statsRow.appendChild(el);
+});
+
+/* ---------------- ALERTS ---------------- */
+const alerts = [
+  {type:"critical", title:"Accident Detected", sub:"District C3", time:"2 min ago"},
+  {type:"warning", title:"Power Failure", sub:"District D1", time:"8 min ago"},
+  {type:"warning", title:"AQI Rising", sub:"District B4", time:"10 min ago"},
+  {type:"warning", title:"Road Closed", sub:"District A2", time:"15 min ago"},
+];
+const alertColors = {
+  critical:{bg:"rgba(255,59,48,.14)", color:"#FF3B30", icon:'<path d="M12 3 2 20h20z"/><path d="M12 9v5"/><circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"/>'},
+  warning:{bg:"rgba(255,176,32,.14)", color:"#FFB020", icon:'<path d="M12 3 2 20h20z"/><path d="M12 9v5"/><circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"/>'}
+};
+const alertsList = document.getElementById("alertsList");
+alerts.forEach(a=>{
+  const c = alertColors[a.type];
+  const el = document.createElement("div");
+  el.className = "alert-item";
+  el.innerHTML = `
+    <div class="alert-ico" style="background:${c.bg};color:${c.color};">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">${c.icon}</svg>
+    </div>
+    <div class="alert-text">
+      <div class="alert-title">${a.title}</div>
+      <div class="alert-sub">${a.sub}</div>
+    </div>
+    <div class="alert-time">${a.time}</div>
+  `;
+  alertsList.appendChild(el);
+});
+
+/* ---------------- CRITICAL ZONES ---------------- */
+const zones = [
+  {id:"B4", level:"Critical", detail:"AQI 250 &middot; Power 21% &middot; Traffic 92%", color:"#FF3B30", bg:"rgba(255,59,48,.14)"},
+  {id:"C3", level:"High Risk", detail:"Accident &middot; Traffic 85%", color:"#FF7A18", bg:"rgba(255,122,24,.14)"},
+  {id:"D1", level:"Warning", detail:"Power Drop &middot; Power 42%", color:"#FFB020", bg:"rgba(255,176,32,.14)"},
+];
+const zonesList = document.getElementById("zonesList");
+zones.forEach(z=>{
+  const el = document.createElement("div");
+  el.className = "zone-item";
+  el.innerHTML = `
+    <div class="zone-badge" style="background:${z.bg};color:${z.color};border:1px solid ${z.color}55;">${z.id}</div>
+    <div>
+      <div class="zone-level" style="color:${z.color};">${z.level}</div>
+      <div class="zone-detail">${z.detail}</div>
+    </div>
+  `;
+  zonesList.appendChild(el);
+});
+
+/* ---------------- CHARTS ---------------- */
+const charts = [
+  {title:"TRAFFIC FLOW", value:"82%", color:"#FF5A00", fillTop:"rgba(255,90,0,.38)", fillBottom:"rgba(255,90,0,0)",
+   yLabels:["100%","75%","50%","25%","0%"],
+   data:[38,45,40,55,60,50,65,58,72,66,78,70,82,75,80,74,82,78,84,80,86,82,88,82]},
+  {title:"AIR QUALITY (AQI)", value:"185", color:"#FF7A18", fillTop:"rgba(255,122,24,.38)", fillBottom:"rgba(255,122,24,0)",
+   yLabels:["300","200","100","0"],
+   data:[30,42,35,50,45,58,52,64,58,66,60,68,62,70,64,72,66,74,68,72,70,76,80,72]},
+  {title:"POWER GRID", value:"76%", color:"#00D9D9", fillTop:"rgba(0,217,217,.34)", fillBottom:"rgba(0,217,217,0)",
+   yLabels:["100%","75%","50%","25%","0%"],
+   data:[55,60,50,58,52,62,54,60,56,64,58,62,60,66,58,64,60,68,62,66,70,64,72,68]},
+];
+
+function areaChart(data,color,fillTop){
+  const w=300,h=96,pad=4;
+  const max=Math.max(...data), min=Math.min(...data)*0.85;
+  const step=(w)/(data.length-1);
+  let line="", area="";
+  data.forEach((v,i)=>{
+    const x=i*step;
+    const y = h-pad - ((v-min)/(max-min||1))*(h-pad*2);
+    line += (i===0?"M":"L")+x.toFixed(1)+","+y.toFixed(1)+" ";
+  });
+  area = "M0,"+h+" "+line.trim().replace("M","L")+` L${w},${h} Z`;
+  area = "M0,"+h+" "+line.slice(1)+` L${w},${h} Z`;
+  const gradId = "g"+Math.random().toString(36).slice(2,8);
+  return `
+    <svg class="chart-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${fillTop}"/>
+          <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
+        </linearGradient>
+      </defs>
+      <path d="${area}" fill="url(#${gradId})" stroke="none"/>
+      <path d="${line}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `;
+}
+
+const chartsRow = document.getElementById("chartsRow");
+charts.forEach(c=>{
+  const el = document.createElement("div");
+  el.className = "panel chart-card";
+  el.innerHTML = `
+    <div class="chart-head">
+      <div class="chart-title">${c.title}</div>
+      <div class="chart-range">Last 24 Hours</div>
+    </div>
+    <div class="chart-num" style="color:${c.color};text-align:right;">${c.value}</div>
+    <div style="display:flex;gap:6px;">
+      <div style="display:flex;flex-direction:column;justify-content:space-between;font-size:9px;color:var(--muted);padding:2px 0;">
+        ${c.yLabels.map(l=>`<div>${l}</div>`).join("")}
+      </div>
+      <div style="flex:1;">
+        ${areaChart(c.data,c.color,c.fillTop)}
+        <div class="chart-xaxis">
+          <span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span>
+        </div>
+      </div>
+    </div>
+  `;
+  chartsRow.appendChild(el);
+});
+
+/* ---------------- MAP ---------------- */
+const mapCanvas = document.getElementById("mapCanvas");
+const W=980,H=520;
+
+// district hexagon centers (approx, matches reference layout)
+const districts = [
+  {id:"A2", cx:560, cy:250, r:78, fill:"none", stroke:"#2A3035", label:"#F2F2F2"},
+  {id:"A3", cx:720, cy:245, r:78, fill:"none", stroke:"#2A3035", label:"#F2F2F2"},
+  {id:"B1", cx:635, cy:305, r:82, fill:"rgba(0,217,217,.05)", stroke:"#00D9D9", strokeOpacity:.35, label:"#F2F2F2"},
+  {id:"B2", cx:613, cy:398, r:90, fill:"none", stroke:"#2A3035", label:"#F2F2F2"},
+  {id:"B4", cx:780, cy:355, r:95, fill:"rgba(255,59,48,.18)", stroke:"#FF3B30", strokeOpacity:1, label:"#FF3B30", glow:true},
+  {id:"C1", cx:520, cy:432, r:78, fill:"none", stroke:"#2A3035", label:"#F2F2F2"},
+  {id:"C2", cx:622, cy:490, r:80, fill:"none", stroke:"#2A3035", label:"#F2F2F2"},
+  {id:"C3", cx:718, cy:437, r:85, fill:"rgba(255,122,24,.12)", stroke:"#FF7A18", strokeOpacity:.8, label:"#F2F2F2"},
+  {id:"D1", cx:490, cy:517, r:88, fill:"rgba(255,176,32,.10)", stroke:"#FFB020", strokeOpacity:.8, label:"#F2F2F2"},
+  {id:"D3", cx:698, cy:522, r:80, fill:"none", stroke:"#2A3035", label:"#F2F2F2"},
+];
+
+function hexPoints(cx,cy,r){
+  let pts=[];
+  for(let i=0;i<6;i++){
+    const a = Math.PI/180*(60*i-30);
+    pts.push((cx+r*Math.cos(a)).toFixed(1)+","+(cy+r*Math.sin(a)).toFixed(1));
+  }
+  return pts.join(" ");
+}
+
+let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+
+// faint street grid
+svg += `<g stroke="#1c2126" stroke-width="1">`;
+for(let x=0;x<=W;x+=46){svg+=`<line x1="${x}" y1="0" x2="${x}" y2="${H}"/>`;}
+for(let y=0;y<=H;y+=46){svg+=`<line x1="0" y1="${y}" x2="${W}" y2="${y}"/>`;}
+svg += `</g>`;
+
+// districts
+districts.forEach(d=>{
+  const glowFilter = d.glow ? `filter:drop-shadow(0 0 14px rgba(255,59,48,.55));` : "";
+  svg += `<polygon points="${hexPoints(d.cx,d.cy,d.r)}" fill="${d.fill}" stroke="${d.stroke}" stroke-width="${d.glow?2.2:1.4}" opacity="${d.strokeOpacity??0.55}" style="${glowFilter}"/>`;
+  svg += `<text x="${d.cx}" y="${d.cy}" fill="${d.label}" font-size="15" font-weight="700" text-anchor="middle" dominant-baseline="middle" opacity="0.85">${d.id}</text>`;
+});
+
+mapCanvas.innerHTML = svg + "</svg>";
+
+// overlay icons (absolute positioned divs, scaled to canvas)
+function iconAt(xPct,yPct,type,color){
+  const map = {
+    bolt:'<path d="M13 2 L4 14h6l-1 8 9-12h-6z"/>',
+    warn:'<path d="M12 3 2 20h20z"/><path d="M12 9v5"/><circle cx="12" cy="17" r=".6" fill="currentColor" stroke="none"/>',
+    cam:'<rect x="3" y="7" width="14" height="10" rx="2"/><path d="M17 10l4-2v8l-4-2z"/>',
+    car:'<path d="M5 16l1.5-5A2 2 0 0 1 8.4 9.5h7.2A2 2 0 0 1 17.5 11L19 16"/><rect x="4" y="16" width="16" height="3.2" rx="1"/><circle cx="7.5" cy="19.6" r="1.2" fill="currentColor" stroke="none"/><circle cx="16.5" cy="19.6" r="1.2" fill="currentColor" stroke="none"/>',
+    metro:'<rect x="5" y="3" width="14" height="15" rx="3"/><circle cx="8.5" cy="19.5" r="1" fill="currentColor" stroke="none"/><circle cx="15.5" cy="19.5" r="1" fill="currentColor" stroke="none"/><path d="M5 12h14"/>',
+    power:'<circle cx="12" cy="12" r="8"/><path d="M9 12l2 2 4-4"/>'
+  };
+  return `<div style="position:absolute;left:${xPct}%;top:${yPct}%;width:20px;height:20px;transform:translate(-50%,-50%);color:${color};">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8">${map[type]}</svg>
+  </div>`;
+}
+
+const icons = [
+  ["bolt", 46, 22, "#FFB020"],
+  ["bolt", 64, 20, "#FFB020"],
+  ["warn", 74, 20, "#FF7A18"],
+  ["warn", 82, 24, "#FF3B30"],
+  ["metro", 48, 24, "#8A9198"],
+  ["warn", 49, 30, "#FF7A18"],
+  ["cam", 88, 25, "#8A9198"],
+  ["cam", 39, 32, "#8A9198"],
+  ["warn", 57, 37, "#FFB020"],
+  ["bolt", 65, 40, "#FFB020"],
+  ["warn", 60, 44, "#FFB020"],
+  ["warn", 83, 30, "#FF3B30"],
+  ["power", 71, 34, "#FFB020"],
+  ["cam", 41, 46, "#8A9198"],
+  ["car", 56, 51, "#8A9198"],
+  ["warn", 49, 60, "#FFB020"],
+  ["metro", 78, 56, "#8A9198"],
+  ["cam", 77, 62, "#8A9198"],
+  ["cam", 59, 65, "#8A9198"],
+];
+let overlay = "";
+icons.forEach(([t,x,y,c])=>{overlay += iconAt(x,y,t,c);});
+mapCanvas.insertAdjacentHTML("beforeend", overlay);
+</script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NEXUS — Alerts &amp; Incidents</title>
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="logo-mark" id="logoMark"></div>
+    <div class="brand-text">
+      <span class="brand-name">NEXUS</span>
+      <span class="brand-sub">Crisis Management System</span>
+    </div>
+  </div>
+  <nav class="sidebar-nav" id="sidebarNav"></nav>
+  <div class="sidebar-footer">
+    <div class="health-card">
+      <span class="health-title">System Health</span>
+      <div class="health-ring" id="healthRing"></div>
+      <span class="health-status" id="healthStatus">OPERATIONAL</span>
+      <div class="health-spark" id="healthSpark"></div>
+    </div>
+  </div>
+</aside>
+
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-title">
+      <h1>ALERTS &amp; INCIDENTS</h1>
+      <p>Real-time incident monitoring and response</p>
+    </div>
+    <div class="topbar-right">
+      <div class="pill">
+        <span class="pill-label">System Status</span>
+        <span class="pill-value tone-green"><span class="dot"></span>OPERATIONAL</span>
+      </div>
+      <div class="pill clock-pill">
+        <span class="pill-label">Live Time</span>
+        <span class="clock-time" id="clockTime">--:--:--</span>
+        <span class="clock-date" id="clockDate">-</span>
+      </div>
+      <div class="live-badge"><span class="dot"></span>LIVE</div>
+      <div class="operator">
+        <div class="op-text">
+          <div class="op-name">OPERATOR 01</div>
+          <div class="op-role">Administrator</div>
+        </div>
+        <div class="op-avatar" id="opAvatar"></div>
+      </div>
+      <button class="icon-btn" id="menuBtn" aria-label="Menu"></button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <div class="stat-grid" id="statGrid"></div>
+
+    <div class="split-row">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>CITY INCIDENT MAP</h2>
+          <div class="controls-row">
+            <select class="select" id="filterType">
+              <option value="all">All Types</option>
+              <option value="traffic">Traffic</option>
+              <option value="air">Air</option>
+              <option value="water">Water</option>
+              <option value="security">Security</option>
+            </select>
+            <select class="select" id="filterDistrict">
+              <option value="all">All Districts</option>
+            </select>
+            <select class="select" id="filterTime">
+              <option value="24">24 Hours</option>
+              <option value="6">6 Hours</option>
+              <option value="1">1 Hour</option>
+              <option value="9999">All Time</option>
+            </select>
+            <button class="btn btn-icon btn-outline" id="mapFullscreenBtn" aria-label="Fullscreen"></button>
+          </div>
+        </div>
+        <div class="map-wrap">
+          <div id="leafletMap"></div>
+          <div class="map-ctrl-group">
+            <button class="map-ctrl-btn" id="zoomInBtn" aria-label="Zoom in"></button>
+            <button class="map-ctrl-btn" id="zoomOutBtn" aria-label="Zoom out"></button>
+            <button class="map-ctrl-btn" id="locateBtn" aria-label="Locate / recenter"></button>
+          </div>
+        </div>
+        <div class="map-legend">
+          <span class="legend-item"><span class="legend-dot" style="background:var(--critical-red)"></span>Critical</span>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--warning-orange)"></span>High</span>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--yellow)"></span>Medium</span>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--blue)"></span>Low</span>
+        </div>
+      </div>
+
+      <div class="panel details-panel">
+        <div class="panel-head">
+          <h2>INCIDENT DETAILS</h2>
+          <span class="badge" id="detailsSeverityBadge"></span>
+        </div>
+        <div class="panel-body" id="detailsBody">
+          <div class="details-empty">Select an incident on the map or in the feed below to view details.</div>
+        </div>
+        <div class="panel-head" style="border-top:1px solid var(--border); border-bottom:none;">
+          <h2>INCIDENT TIMELINE</h2>
+        </div>
+        <div class="timeline" id="detailsTimeline"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="feed-toolbar">
+        <div class="filter-pills" id="severityFilterPills">
+          <button class="filter-pill active" data-sev="all">ALL</button>
+          <button class="filter-pill" data-sev="critical">CRITICAL</button>
+          <button class="filter-pill" data-sev="high">HIGH</button>
+          <button class="filter-pill" data-sev="medium">MEDIUM</button>
+          <button class="filter-pill" data-sev="low">LOW</button>
+        </div>
+        <div class="search-box">
+          <span id="searchIcon"></span>
+          <input type="text" id="searchInput" placeholder="Search incident ID or location..." />
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="feed-table">
+          <thead>
+            <tr>
+              <th>Severity</th>
+              <th>Incident</th>
+              <th>Location</th>
+              <th>Time</th>
+              <th>Status</th>
+              <th>Responsible</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="feedBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="vendor/leaflet.heat/leaflet-heat.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/data.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/livemap.js"></script>
+<script src="js/alerts.js"></script>
+</body>
+</html>
