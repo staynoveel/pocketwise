@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Nexus — Traffic Monitoring</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg-0:#080A0C;
@@ -87,11 +90,11 @@
   .nav-item.unbuilt{opacity:.38; cursor:default;}
   .nav-item.unbuilt:hover{background:none; color:var(--muted);}
   .nav-item.active{
-    background:linear-gradient(90deg, rgba(0,217,217,.14), rgba(0,217,217,.02));
+    background:linear-gradient(90deg, rgba(255,90,0,.14), rgba(255,90,0,.02));
     color:var(--text);
-    box-shadow:inset 3px 0 0 var(--cyan);
+    box-shadow:inset 3px 0 0 var(--orange-strong);
   }
-  .nav-item.active svg{opacity:1; color:var(--cyan);}
+  .nav-item.active svg{opacity:1; color:var(--orange-strong);}
   .nav-badge{
     margin-left:auto;
     background:var(--red);
@@ -201,7 +204,7 @@
   }
   .op-avatar{
     width:32px; height:32px; border-radius:50%;
-    background:linear-gradient(135deg,#3a3f45,#1c2024);
+    background:linear-gradient(135deg,#2A3035,#15191D);
     display:flex; align-items:center; justify-content:center;
     font-size:14px; color:var(--cyan); font-weight:700;
     overflow:hidden;
@@ -285,7 +288,7 @@
     background:var(--bg-2);
   }
   .chk.on{background:var(--cyan-2); border-color:var(--cyan-2);}
-  .chk.on svg{width:11px; height:11px; color:#06181a;}
+  .chk.on svg{width:11px; height:11px; color:#062024;}
   .layer-item.dim{color:var(--muted);}
   .clear-all{
     width:100%;
@@ -306,7 +309,7 @@
     position:relative;
     min-height:640px;
     display:flex;
-    background:#060809;
+    background:#0B0E11;
   }
   .map-search-wrap{position:absolute; top:16px; left:16px; right:16px; z-index:5;}
   .map-layers-wrap{
@@ -893,7 +896,7 @@ function buildNetwork(){
 
 function drawBackground(){
   const w=mapCanvas.width, h=mapCanvas.height;
-  mapCtx.fillStyle = '#060809';
+  mapCtx.fillStyle = '#0B0E11';
   mapCtx.fillRect(0,0,w,h);
 
   // faint building blocks
@@ -1105,7 +1108,7 @@ function drawFlowChart(){
   const [mx,my] = xy(markerIdx);
   ctx.beginPath();
   ctx.arc(mx,my,4*dpr,0,Math.PI*2);
-  ctx.fillStyle = '#0B0D0F';
+  ctx.fillStyle = '#080A0C';
   ctx.strokeStyle = '#FF7A18';
   ctx.lineWidth = 2*dpr;
   ctx.fill(); ctx.stroke();
