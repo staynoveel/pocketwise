@@ -26,12 +26,18 @@ function categorizeAqi(aqi) {
   return AQI_THRESHOLDS.find((t) => aqi <= t.max);
 }
 
+// Open-Meteo reports every pollutant in µg/m³ (confirmed by the API's own
+// `current_units`), so all ceilings below are µg/m³ too. They were previously
+// on the ppm/ppb scale, which mislabelled the units and made a normal CO
+// reading (~460 µg/m³) read as "Critical" against a 9 ppm ceiling.
+// Ceilings are set near the top of each pollutant's unhealthy range so the
+// bars stay comparable: WHO/EPA short-term guidance for NO₂, SO₂ and CO.
 const POLLUTANT_LIMITS = {
   pm25: { max: 150, unit: "µg/m³" },
   pm10: { max: 250, unit: "µg/m³" },
-  no2: { max: 100, unit: "ppb" },
-  so2: { max: 75, unit: "ppb" },
-  co: { max: 9, unit: "ppm" },
+  no2: { max: 200, unit: "µg/m³" },
+  so2: { max: 350, unit: "µg/m³" },
+  co: { max: 4000, unit: "µg/m³" },
 };
 
 function pollutantStatus(key, value) {

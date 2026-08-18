@@ -134,9 +134,9 @@ function selectZone(id) {
     <div class="details-desc" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
       <div>PM2.5 <b style="color:var(--text-primary)">${zone.pollutants.pm25 ?? "—"} µg/m³</b></div>
       <div>PM10 <b style="color:var(--text-primary)">${zone.pollutants.pm10 ?? "—"} µg/m³</b></div>
-      <div>NO₂ <b style="color:var(--text-primary)">${zone.pollutants.no2 ?? "—"} ppb</b></div>
-      <div>SO₂ <b style="color:var(--text-primary)">${zone.pollutants.so2 ?? "—"} ppb</b></div>
-      <div>CO <b style="color:var(--text-primary)">${zone.pollutants.co ?? "—"} ppm</b></div>
+      <div>NO₂ <b style="color:var(--text-primary)">${zone.pollutants.no2 ?? "—"} µg/m³</b></div>
+      <div>SO₂ <b style="color:var(--text-primary)">${zone.pollutants.so2 ?? "—"} µg/m³</b></div>
+      <div>CO <b style="color:var(--text-primary)">${zone.pollutants.co ?? "—"} µg/m³</b></div>
     </div>
   `;
 
@@ -178,7 +178,8 @@ function renderPollutants() {
     if (r.value == null) {
       return `<div class="pollutant-row"><div class="pollutant-name">${r.label}</div><div style="flex:1;color:var(--text-muted);font-size:11px;">No live reading</div></div>`;
     }
-    const value = r.key === "co" ? r.value.toFixed(1) : Math.round(r.value);
+    // every pollutant is µg/m³ now, so they all round the same way
+    const value = Math.round(r.value);
     const limit = POLLUTANT_LIMITS[r.key];
     const pct = Math.min(100, (r.value / limit.max) * 100);
     const status = pollutantStatus(r.key, r.value);
