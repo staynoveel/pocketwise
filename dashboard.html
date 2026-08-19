@@ -102,6 +102,7 @@
     transition:.15s;
   }
   .nav-item svg{width:17px;height:17px;flex:0 0 17px;}
+  .nav-item b{margin-left:auto;background:var(--red);color:#fff;border-radius:9px;padding:1px 6px;font-size:9px;font-weight:700;}
   .nav-item:hover{color:var(--text);background:rgba(255,255,255,.03);}
   .nav-item.unbuilt{opacity:.38;cursor:default;}
   .nav-item.unbuilt:hover{background:none;color:var(--muted);}
@@ -200,7 +201,7 @@
   /* stat cards */
   .stats-row{
     display:grid;
-    grid-template-columns:repeat(6,1fr);
+    grid-template-columns:repeat(5,1fr);
     gap:14px;
   }
   .stat-card{
@@ -474,10 +475,8 @@
       <a class="nav-item" href="power-grid.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2 L4 14h6l-1 8 9-12h-6z"/></svg>Power Grid</a>
       <a class="nav-item" href="air-quality.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9.5 2C7 6 4 9 4 13a5.5 5.5 0 0 0 11 0c0-4-3-7-5.5-11z"/></svg>Air Quality</a>
       <a class="nav-item unbuilt" title="No page built for this section yet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-6-5.2-6-10a6 6 0 0 1 12 0c0 4.8-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg>Water System</a>
-      <a class="nav-item unbuilt" title="No page built for this section yet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="3" width="14" height="15" rx="3"/><circle cx="8.5" cy="19.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="15.5" cy="19.5" r="1.2" fill="currentColor" stroke="none"/><path d="M5 12h14"/></svg>Metro &amp; Transit</a>
       <a class="nav-item" href="security.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2 4 5v6c0 5 3.4 8.7 8 11 4.6-2.3 8-6 8-11V5z"/></svg>Security</a>
-      <a class="nav-item" href="alerts.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>Alerts</a>
-      <a class="nav-item unbuilt" title="No page built for this section yet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>Reports</a>
+      <a class="nav-item" href="alerts.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>Alerts &amp; Incidents<b>7</b></a>
       <a class="nav-item" href="settings.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1.5 1z"/></svg>Settings</a>
     </nav>
 
@@ -536,11 +535,6 @@
 
         <div class="map-layers">
           <div class="map-layers-title">MAP LAYERS</div>
-          <div class="layer-item"><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Traffic</div>
-          <div class="layer-item"><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Air Quality</div>
-          <div class="layer-item"><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Power Grid</div>
-          <div class="layer-item"><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Water System</div>
-          <div class="layer-item"><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Metro</div>
           <div class="layer-item"><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Security Cameras</div>
           <div class="layer-clear">Clear All</div>
         </div>
@@ -628,9 +622,6 @@ const stats = [
   {label:"WATER SYSTEM", value:"91%", status:"Stable", color:"var(--cyan)", bg:"rgba(0,217,217,.12)",
     icon:'<path d="M12 21s-6-5.2-6-10a6 6 0 0 1 12 0c0 4.8-6 10-6 10z"/>',
     spark:[55,60,58,65,62,68,64,70,66,72,70,74,72,76,74,78,80,82], sparkColor:"#00D9D9"},
-  {label:"METRO SYSTEM", value:"94%", status:"Operational", color:"var(--green)", bg:"rgba(24,199,122,.12)",
-    icon:'<rect x="5" y="3" width="14" height="15" rx="3"/><circle cx="8.5" cy="19.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="15.5" cy="19.5" r="1.2" fill="currentColor" stroke="none"/><path d="M5 12h14"/>',
-    spark:[60,65,62,70,68,74,70,76,72,78,76,80,78,82,80,84,86,88], sparkColor:"#18C77A"},
   {label:"SECURITY", value:"98%", status:"Online", color:"var(--cyan)", bg:"rgba(0,217,217,.12)",
     icon:'<path d="M12 2 4 5v6c0 5 3.4 8.7 8 11 4.6-2.3 8-6 8-11V5z"/><path d="M9 12l2 2 4-4"/>',
     spark:[70,74,72,78,76,80,78,82,80,84,82,86,84,88,86,90,92,94], sparkColor:"#00D9D9"},
@@ -835,7 +826,6 @@ function iconAt(xPct,yPct,type,color){
     warn:'<path d="M12 3 2 20h20z"/><path d="M12 9v5"/><circle cx="12" cy="17" r=".6" fill="currentColor" stroke="none"/>',
     cam:'<rect x="3" y="7" width="14" height="10" rx="2"/><path d="M17 10l4-2v8l-4-2z"/>',
     car:'<path d="M5 16l1.5-5A2 2 0 0 1 8.4 9.5h7.2A2 2 0 0 1 17.5 11L19 16"/><rect x="4" y="16" width="16" height="3.2" rx="1"/><circle cx="7.5" cy="19.6" r="1.2" fill="currentColor" stroke="none"/><circle cx="16.5" cy="19.6" r="1.2" fill="currentColor" stroke="none"/>',
-    metro:'<rect x="5" y="3" width="14" height="15" rx="3"/><circle cx="8.5" cy="19.5" r="1" fill="currentColor" stroke="none"/><circle cx="15.5" cy="19.5" r="1" fill="currentColor" stroke="none"/><path d="M5 12h14"/>',
     power:'<circle cx="12" cy="12" r="8"/><path d="M9 12l2 2 4-4"/>'
   };
   return `<div style="position:absolute;left:${xPct}%;top:${yPct}%;width:20px;height:20px;transform:translate(-50%,-50%);color:${color};">
@@ -848,7 +838,6 @@ const icons = [
   ["bolt", 64, 20, "#FFB020"],
   ["warn", 74, 20, "#FF7A18"],
   ["warn", 82, 24, "#FF3B30"],
-  ["metro", 48, 24, "#8A9198"],
   ["warn", 49, 30, "#FF7A18"],
   ["cam", 88, 25, "#8A9198"],
   ["cam", 39, 32, "#8A9198"],
@@ -860,7 +849,6 @@ const icons = [
   ["cam", 41, 46, "#8A9198"],
   ["car", 56, 51, "#8A9198"],
   ["warn", 49, 60, "#FFB020"],
-  ["metro", 78, 56, "#8A9198"],
   ["cam", 77, 62, "#8A9198"],
   ["cam", 59, 65, "#8A9198"],
 ];

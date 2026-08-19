@@ -137,6 +137,16 @@ input { font-family: inherit; }
   opacity: 0.85;
 }
 
+.nav-item b {
+  margin-left: auto;
+  background: var(--critical-red);
+  color: #fff;
+  border-radius: 9px;
+  padding: 1px 6px;
+  font-size: 9px;
+  font-weight: 700;
+}
+
 .nav-item:hover {
   background: rgba(255, 255, 255, 0.03);
   color: var(--text-primary);

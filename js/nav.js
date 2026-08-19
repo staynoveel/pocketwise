@@ -10,10 +10,8 @@ const NAV_ITEMS = [
   { key: "power-grid", label: "Power Grid", icon: "powerGrid", href: "power-grid.html" },
   { key: "air-quality", label: "Air Quality", icon: "airQuality", href: "air-quality.html" },
   { key: "water-system", label: "Water System", icon: "waterSystem", href: null },
-  { key: "metro-transit", label: "Metro & Transit", icon: "metro", href: null },
   { key: "security", label: "Security", icon: "security", href: "security.html" },
-  { key: "alerts-incidents", label: "Alerts & Incidents", icon: "alerts", href: "alerts.html" },
-  { key: "reports", label: "Reports", icon: "reports", href: null },
+  { key: "alerts-incidents", label: "Alerts & Incidents", icon: "alerts", href: "alerts.html", badge: "7" },
   { key: "settings", label: "Settings", icon: "settings", href: "settings.html" },
 ];
 
@@ -34,7 +32,7 @@ function initNexusChrome(activeKey) {
       const tag = item.href ? "a" : "div";
       const hrefAttr = item.href ? `href="${item.href}"` : "";
       const cls = `nav-item${isActive ? " active" : ""}${!item.href ? " disabled" : ""}`;
-      return `<${tag} class="${cls}" ${hrefAttr} title="${item.href ? "" : "No page built for this section yet"}">${icon(item.icon)}<span>${item.label}</span></${tag}>`;
+      return `<${tag} class="${cls}" ${hrefAttr} title="${item.href ? "" : "No page built for this section yet"}">${icon(item.icon)}<span>${item.label}</span>${item.badge ? `<b>${item.badge}</b>` : ""}</${tag}>`;
     }).join("");
   }
 

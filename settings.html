@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>NEXUS · Crisis Command Center</title>
+<title>NEXUS — Settings</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -64,6 +64,7 @@
     text-decoration:none;
   }
   .nav-item.unbuilt{ opacity:.38; cursor:default; }
+  .nav-item b{ margin-left:auto; background:var(--red); color:#fff; border-radius:9px; padding:1px 6px; font-size:9px; font-weight:700; }
   .nav-item svg path, .nav-item svg rect, .nav-item svg line, .nav-item svg circle, .nav-item svg polyline{
     stroke:var(--sub);
   }
@@ -478,10 +479,8 @@ const NAV = [
   { key:"power", label:"Power Grid", icon:"power", href:"power-grid.html" },
   { key:"air", label:"Air Quality", icon:"air", href:"air-quality.html" },
   { key:"water", label:"Water System", icon:"water", href:null },
-  { key:"transit", label:"Metro & Transit", icon:"transit", href:null },
   { key:"security", label:"Security", icon:"shield", href:"security.html" },
-  { key:"alerts", label:"Alerts", icon:"bell", href:"alerts.html" },
-  { key:"reports", label:"Reports", icon:"reports", href:null },
+  { key:"alerts", label:"Alerts & Incidents", icon:"bell", href:"alerts.html", badge:"7" },
   { key:"settings", label:"Settings", icon:"settings", href:"settings.html" },
 ];
 
@@ -496,7 +495,7 @@ function renderNav(){
       : `title="No page built for this section yet"`;
     return `<a class="${cls}" ${attrs}>
       ${iconSVG(item.icon, {size:18, color: isActive ? C.orange2 : C.sub})}
-      <span>${item.label}</span>
+      <span>${item.label}</span>${item.badge ? `<b>${item.badge}</b>` : ""}
     </a>`;
   }).join("");
 }
