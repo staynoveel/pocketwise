@@ -502,8 +502,8 @@
         <span class="dot"></span>LIVE <span class="sub">Real-Time Monitoring</span>
       </div>
       <div class="topbar-center">
-        <div class="time">14:35:42</div>
-        <div class="date">May 25, 2024</div>
+        <div class="time" id="clockTime">--:--:--</div>
+        <div class="date" id="clockDate">&nbsp;</div>
       </div>
       <div class="topbar-right">
         <div class="icon-btn">
@@ -855,6 +855,20 @@ const icons = [
 let overlay = "";
 icons.forEach(([t,x,y,c])=>{overlay += iconAt(x,y,t,c);});
 mapCanvas.insertAdjacentHTML("beforeend", overlay);
+
+/* Live wall clock — the header must show the operator's real time, not the
+   timestamp this layout happened to be designed at. */
+(function liveClock(){
+  const t = document.getElementById("clockTime");
+  const d = document.getElementById("clockDate");
+  function tick(){
+    const now = new Date();
+    t.textContent = [now.getHours(), now.getMinutes(), now.getSeconds()]
+      .map(n => String(n).padStart(2, "0")).join(":");
+    d.textContent = now.toLocaleDateString("en-US", {month:"long", day:"numeric", year:"numeric"});
+  }
+  tick(); setInterval(tick, 1000);
+})();
 </script>
 </body>
 </html>

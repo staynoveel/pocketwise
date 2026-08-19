@@ -418,7 +418,7 @@ body::before{
         <div class="live-tag"><span class="pulse-dot"></span> LIVE DATA</div>
       </div>
       <div class="topbar-right">
-        <div class="clock mono">14:35:42 · <b>May 29, 2026</b></div>
+        <div class="clock mono"><span id="clockTime">--:--:--</span> · <b id="clockDate">&nbsp;</b></div>
         <div class="icon-btn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
           <span class="dot"></span>
@@ -715,5 +715,20 @@ body::before{
   </main>
 </div>
 
+<script>
+/* Live wall clock — the header must show the operator's real time, not the
+   timestamp this layout happened to be designed at. */
+(function liveClock(){
+  const t = document.getElementById("clockTime");
+  const d = document.getElementById("clockDate");
+  function tick(){
+    const now = new Date();
+    t.textContent = [now.getHours(), now.getMinutes(), now.getSeconds()]
+      .map(n => String(n).padStart(2, "0")).join(":");
+    d.textContent = now.toLocaleDateString("en-US", {month:"long", day:"numeric", year:"numeric"});
+  }
+  tick(); setInterval(tick, 1000);
+})();
+</script>
 </body>
 </html>
