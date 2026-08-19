@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fa" dir="ltr">
+<html lang="en" dir="ltr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -289,6 +289,7 @@
   }
   .chk.on{background:var(--cyan-2); border-color:var(--cyan-2);}
   .chk.on svg{width:11px; height:11px; color:#062024;}
+  .layer-item:focus-visible{ outline:2px solid var(--teal, #00D9D9); outline-offset:2px; border-radius:6px; }
   .layer-item.dim{color:var(--muted);}
   .clear-all{
     width:100%;
@@ -580,13 +581,13 @@
             <div class="layers-head">MAP LAYERS
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
             </div>
-            <div class="layer-item" data-on="1"><span class="chk on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Traffic Flow</div>
-            <div class="layer-item" data-on="1"><span class="chk on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Incidents</div>
-            <div class="layer-item" data-on="1"><span class="chk on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Cameras</div>
-            <div class="layer-item" data-on="1"><span class="chk on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Road Closures</div>
-            <div class="layer-item dim" data-on="0"><span class="chk"></span>Construction</div>
-            <div class="layer-item dim" data-on="0"><span class="chk"></span>Public Transit</div>
-            <div class="layer-item dim" data-on="0"><span class="chk"></span>Weather</div>
+            <div class="layer-item" data-on="1" role="checkbox" tabindex="0" aria-checked="true"><span class="chk on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Traffic Flow</div>
+            <div class="layer-item" data-on="1" role="checkbox" tabindex="0" aria-checked="true"><span class="chk on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Incidents</div>
+            <div class="layer-item" data-on="1" role="checkbox" tabindex="0" aria-checked="true"><span class="chk on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Cameras</div>
+            <div class="layer-item" data-on="1" role="checkbox" tabindex="0" aria-checked="true"><span class="chk on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Road Closures</div>
+            <div class="layer-item dim" data-on="0" role="checkbox" tabindex="0" aria-checked="false"><span class="chk"></span>Construction</div>
+            <div class="layer-item dim" data-on="0" role="checkbox" tabindex="0" aria-checked="false"><span class="chk"></span>Public Transit</div>
+            <div class="layer-item dim" data-on="0" role="checkbox" tabindex="0" aria-checked="false"><span class="chk"></span>Weather</div>
             <button class="clear-all">Clear All</button>
           </div>
 
@@ -784,7 +785,7 @@ tick(); setInterval(tick, 1000);
 
 /* ---------- layer checkboxes ---------- */
 document.querySelectorAll('.layer-item').forEach(item=>{
-  item.addEventListener('click', ()=>{
+  function toggle(){
     const chk = item.querySelector('.chk');
     const on = item.dataset.on === '1';
     if(on){
@@ -795,6 +796,12 @@ document.querySelectorAll('.layer-item').forEach(item=>{
       chk.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>';
       item.classList.remove('dim'); item.dataset.on='1';
     }
+    item.setAttribute('aria-checked', item.dataset.on === '1' ? 'true' : 'false');
+  }
+  item.addEventListener('click', toggle);
+  // Space and Enter must work too, or the panel is mouse-only.
+  item.addEventListener('keydown', e=>{
+    if(e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); toggle(); }
   });
 });
 document.querySelector('.clear-all').addEventListener('click', ()=>{
@@ -802,6 +809,7 @@ document.querySelector('.clear-all').addEventListener('click', ()=>{
     const chk = item.querySelector('.chk');
     chk.classList.remove('on'); chk.innerHTML='';
     item.classList.add('dim'); item.dataset.on='0';
+    item.setAttribute('aria-checked','false');
   });
 });
 
