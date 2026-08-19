@@ -9,7 +9,7 @@ const NAV_ITEMS = [
   { key: "traffic", label: "Traffic", icon: "traffic", href: "traffic.html" },
   { key: "power-grid", label: "Power Grid", icon: "powerGrid", href: "power-grid.html" },
   { key: "air-quality", label: "Air Quality", icon: "airQuality", href: "air-quality.html" },
-  { key: "water-system", label: "Water System", icon: "waterSystem", href: null },
+  { key: "water-system", label: "Water System", icon: "waterSystem", href: "water-system.html" },
   { key: "security", label: "Security", icon: "security", href: "security.html" },
   { key: "alerts-incidents", label: "Alerts & Incidents", icon: "alerts", href: "alerts.html", badge: "7" },
   { key: "settings", label: "Settings", icon: "settings", href: "settings.html" },
@@ -17,7 +17,8 @@ const NAV_ITEMS = [
 
 function initNexusChrome(activeKey) {
   const logoMark = document.getElementById("logoMark");
-  if (logoMark) logoMark.innerHTML = icon("logo");
+  if (logoMark) logoMark.innerHTML =
+    '<img class="nexus-mark" src="assets/nexus-mark.png" alt="NEXUS">';
 
   const opAvatar = document.getElementById("opAvatar");
   if (opAvatar) opAvatar.innerHTML = icon("user");

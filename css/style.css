@@ -86,6 +86,13 @@ input { font-family: inherit; }
   flex-shrink: 0;
 }
 
+.nexus-mark {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  display: block;
+}
+
 .sidebar-brand .brand-text {
   display: flex;
   flex-direction: column;

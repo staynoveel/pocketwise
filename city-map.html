@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NEXUS — City Map</title>
+<link rel="icon" type="image/png" href="assets/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -113,11 +114,14 @@ background-size:42px 42px;opacity:.35}
   background:#101316;
 }
 
-  </style>
+  
+  .nexus-mark{width:34px;height:34px;object-fit:contain;display:block;flex-shrink:0;}
+  .brand-mark,.logo-mark{border:none!important;background:none!important;clip-path:none!important;box-shadow:none!important;width:34px;height:34px;}
+</style>
   <div class="app">
     <aside class="sidebar" id="sidebar">
       <div class="brand">
-        <div class="brand-mark">N</div>
+        <div class="brand-mark"><img class="nexus-mark" src="assets/nexus-mark.png" alt="NEXUS"></div>
         <div><strong>NEXUS</strong><span>CRISIS COMMAND CENTER</span></div>
       </div>
 
@@ -127,7 +131,7 @@ background-size:42px 42px;opacity:.35}
         <a class="nav-item" href="traffic.html"><span>⌘</span>Traffic</a>
         <a class="nav-item" href="power-grid.html"><span>ϟ</span>Power Grid</a>
         <a class="nav-item" href="air-quality.html"><span>♨</span>Air Quality</a>
-        <a class="nav-item unbuilt" title="No page built for this section yet"><span>◯</span>Water System</a>
+        <a href="water-system.html" class="nav-item"><span>◯</span>Water System</a>
         <a class="nav-item" href="security.html"><span>♢</span>Security</a>
         <a class="nav-item" href="alerts.html"><span>♧</span>Alerts &amp; Incidents<b>7</b></a>
         <a class="nav-item" href="settings.html"><span>⚙</span>Settings</a>

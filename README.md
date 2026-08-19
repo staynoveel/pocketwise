@@ -2,7 +2,7 @@
 
 **Innoverse 2026 · Team SMA-W1**
 
-NEXUS is an operations dashboard for a city crisis-management centre. Nine
+NEXUS is an operations dashboard for a city crisis-management centre. Ten
 screens cover the city's critical systems — traffic, power, air quality,
 water, physical security, and the incident queue that ties them together.
 
@@ -39,7 +39,7 @@ maps fall back to Tehran (35.7219 N, 51.3347 E) after ~8 seconds.
 
 ---
 
-## The nine screens
+## The ten screens
 
 | # | Screen | File | What it does |
 |---|--------|------|--------------|
@@ -49,14 +49,14 @@ maps fall back to Tehran (35.7219 N, 51.3347 E) after ~8 seconds.
 | 4 | Traffic | `traffic.html` | Congestion by corridor, signal status, incident list |
 | 5 | Power Grid | `power-grid.html` | Load, substation health, outage timeline |
 | 6 | Air Quality | `air-quality.html` | **Live AQI** — current readings, 30-day history, per-zone map |
-| 7 | Security | `security.html` | **Live map** — cameras, police stations, hazards, zone status |
-| 8 | Alerts & Incidents | `alerts.html` | **Live incidents** — the operational queue, filterable, with dispatch |
-| 9 | Settings | `settings.html` | Report centre and system configuration |
+| 7 | Water System | `water-system.html` | Network schematic, reservoirs, pumps, valves, quality by zone |
+| 8 | Security | `security.html` | **Live map** — cameras, police stations, hazards, zone status |
+| 9 | Alerts & Incidents | `alerts.html` | **Live incidents** — the operational queue, filterable, with dispatch |
+| 10 | Settings | `settings.html` | Report centre and system configuration |
 
-Every screen shares one sidebar, one header, and one design system, and every
-sidebar entry links to a page that exists. **Water System** is shown dimmed —
-it is a planned section with no page built yet, marked as such rather than
-left as a link that 404s.
+Every screen shares one sidebar, one header, one brand mark and one design
+system, and every sidebar entry links to a page that exists — there are no
+dead or disabled entries left.
 
 ---
 
@@ -90,11 +90,12 @@ the numbers change with it.
 
 ### Illustrative
 
-**Dashboard, Traffic, Power Grid** and the **Settings** report tables use
+**Dashboard, Traffic, Power Grid, Water System** and the **Settings** report
+tables use
 representative sample values. Cities do not publish free, keyless, real-time
 feeds for grid load or signal-by-signal congestion, so those screens
 demonstrate the interface an operator would use once a city connects its own
-SCADA and traffic-management systems.
+SCADA, traffic-management and water-utility systems.
 
 The **login screen is a UI flow, not authentication.** It accepts any input
 and navigates to the dashboard. It is deliberately not an access-control
@@ -113,12 +114,17 @@ being presented as live emergency dispatch.
 ├── index.html              login
 ├── dashboard.html          ┐
 ├── city-map.html           │
-├── traffic.html            │
-├── power-grid.html         ├─ the nine screens
+├── traffic.html            ├─ the ten screens
+├── power-grid.html         │
 ├── air-quality.html        │
+├── water-system.html       │
 ├── security.html           │
 ├── alerts.html             │
 ├── settings.html           ┘
+│
+├── assets/
+│   ├── nexus-mark.png      the NEXUS knot, sidebar brand mark on every screen
+│   └── favicon.png         the same mark, 64px, as the browser-tab icon
 │
 ├── css/
 │   └── style.css           design tokens + shared chrome
@@ -147,7 +153,7 @@ network, and every fetch degrades gracefully when it is unavailable.
 **Separation of concerns.** Markup is in the HTML, the design system is in
 `css/style.css`, and the data layer is isolated in `js/data.js` and
 `js/livemap.js` — so swapping a public API for a city's own backend means
-editing one module, not nine pages.
+editing one module, not ten pages.
 
 ---
 
@@ -170,10 +176,13 @@ properties in `css/style.css`:
 | `--text-primary` | `#F2F2F2` | Body text |
 | `--text-secondary` | `#8A9198` | Labels, secondary text |
 
+The NEXUS knot is the brand mark on every screen except the login page, shown
+in the primary accent at 34px in the sidebar and as the browser-tab icon.
+
 Type is **Inter** for the interface and **JetBrains Mono** for numbers,
 timestamps and coordinates, so figures stay aligned as they tick.
 
-Severity always reads the same way across all nine screens — green normal,
+Severity always reads the same way across all ten screens — green normal,
 yellow elevated, orange warning, red critical — and status is never signalled
 by colour alone; every state carries a text label too.
 
@@ -200,8 +209,8 @@ below 1000px and becomes a drawer below 768px.
 - Sections with no page yet are marked `title="No page built for this section
   yet"` rather than presented as working links.
 
-Known gap: the three illustrative screens (Dashboard, Power Grid, and parts of
-Settings) contain elements styled as clickable — dropdowns, "view all" links —
+Known gap: the illustrative screens (Dashboard, Power Grid, Water System and
+parts of Settings) contain elements styled as clickable — dropdowns, "view all" links —
 that are not wired to behaviour. They are layout placeholders for a real
 backend, and they are not keyboard-focusable because there is nothing yet to
 activate.
@@ -214,10 +223,8 @@ We would rather list these than have a judge find them.
   can return an error page or drop the connection. When that happens the map
   keeps its tiles and reports the failure in the page status line instead of
   showing stale or invented data.
-- **Traffic and Power Grid are illustrative** (see above).
+- **Traffic, Power Grid and Water System are illustrative** (see above).
 - **The login screen does not authenticate.**
-- **Water System is not built** — it is in the navigation as a planned
-  section, visibly disabled.
 - **Air-quality history is a 30-day window**, which is what Open-Meteo's free
   tier serves; longer trends would need a stored backend.
 - **Some corporate and school networks block Overpass and Open-Meteo.** If the
@@ -230,7 +237,7 @@ We would rather list these than have a judge find them.
 
 The site is checked with [Playwright](https://playwright.dev) against a local
 server. The suite asserts that every page loads with **no JavaScript errors
-and no 404s**, that all nine sidebars render the same nine entries in the same
+and no 404s**, that all ten sidebars render the same nine entries in the same
 order with exactly one active item, that every internal link resolves, and
 that the header clocks actually advance and match wall time.
 

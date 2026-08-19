@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NEXUS — Security Monitoring</title>
+<link rel="icon" type="image/png" href="assets/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -259,12 +260,13 @@ svg{display:block}
   .sync-tag{display:none}
 }
 
+
+  .nexus-mark{width:34px;height:34px;object-fit:contain;display:block;flex-shrink:0;}
+  .brand-mark,.logo-mark{border:none!important;background:none!important;clip-path:none!important;box-shadow:none!important;width:34px;height:34px;}
 </style>
   <aside class="sidebar">
     <div class="brand">
-      <div class="brand-mark">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2 3 6.5v11L12 22l9-4.5v-11L12 2z"/><path d="M12 2v20M3 6.5l9 4.5 9-4.5M3 17.5l9-4.5 9 4.5"/></svg>
-      </div>
+      <div class="brand-mark"><img class="nexus-mark" src="assets/nexus-mark.png" alt="NEXUS"></div>
       <div><div class="brand-name">NEXUS</div><div class="brand-sub">Crisis Management System</div></div>
     </div>
     <nav class="nav">
@@ -273,7 +275,7 @@ svg{display:block}
       <a href="traffic.html"><svg viewBox="0 0 24 24"><rect x="4" y="9" width="16" height="8" rx="2"/><circle cx="8" cy="17" r="1.6"/><circle cx="16" cy="17" r="1.6"/><path d="M6 9V6h12v3"/></svg><span>Traffic</span></a>
       <a href="power-grid.html"><svg viewBox="0 0 24 24"><polygon points="13 2 4 14 11 14 10 22 20 9 13 9 13 2"/></svg><span>Power Grid</span></a>
       <a href="air-quality.html"><svg viewBox="0 0 24 24"><path d="M7 17a4 4 0 0 1 0-8 5 5 0 0 1 9.6-1.5A4.5 4.5 0 0 1 17 17H7z"/></svg><span>Air Quality</span></a>
-      <a title="No page built for this section yet" class="unbuilt"><svg viewBox="0 0 24 24"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg><span>Water System</span></a>
+      <a href="water-system.html"><svg viewBox="0 0 24 24"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg><span>Water System</span></a>
       <a href="security.html" class="active"><svg viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 8.7 8 11 4.6-2.3 8-6 8-11V5l-8-3z"/></svg><span>Security</span></a>
       <a href="alerts.html"><svg viewBox="0 0 24 24"><path d="M10.3 3.9 1.9 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.9 3.9a2 2 0 0 0-3.6 0z"/><path d="M12 9v4M12 17h.01"/></svg><span>Alerts &amp; Incidents</span><b id="alertsBadge">7</b></a>
       <a href="settings.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>Settings</span></a>

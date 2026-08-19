@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>NEXUS — Settings</title>
+<link rel="icon" type="image/png" href="assets/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -261,14 +262,15 @@
     .report-center{ min-width:0; }
     .sidebar{ display:none; }
   }
+
+  .nexus-mark{width:34px;height:34px;object-fit:contain;display:block;flex-shrink:0;}
+  .brand-mark,.logo-mark{border:none!important;background:none!important;clip-path:none!important;box-shadow:none!important;width:34px;height:34px;}
 </style>
 <div class="app">
   <!-- ================= SIDEBAR ================= -->
   <aside class="sidebar">
     <div class="brand">
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-        <path d="M4 20 12 3l8 17-8-4.5L4 20Z" stroke="#00D9D9" stroke-width="1.6" stroke-linejoin="round"/>
-      </svg>
+      <img class="nexus-mark" src="assets/nexus-mark.png" alt="NEXUS">
       <div>
         <div class="brand-name">NEXUS</div>
         <div class="brand-sub">CRISIS COMMAND CENTER</div>
@@ -478,7 +480,7 @@ const NAV = [
   { key:"traffic", label:"Traffic", icon:"traffic", href:"traffic.html" },
   { key:"power", label:"Power Grid", icon:"power", href:"power-grid.html" },
   { key:"air", label:"Air Quality", icon:"air", href:"air-quality.html" },
-  { key:"water", label:"Water System", icon:"water", href:null },
+  { key:"water", label:"Water System", icon:"water", href:"water-system.html" },
   { key:"security", label:"Security", icon:"shield", href:"security.html" },
   { key:"alerts", label:"Alerts & Incidents", icon:"bell", href:"alerts.html", badge:"7" },
   { key:"settings", label:"Settings", icon:"settings", href:"settings.html" },

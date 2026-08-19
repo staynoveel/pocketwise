@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NEXUS — Power Grid</title>
+<link rel="icon" type="image/png" href="assets/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -380,13 +381,16 @@ body::before{
   .layout{ grid-template-columns:1fr; }
   .kpi-row, .chart-row{ grid-template-columns:1fr 1fr; }
 }
+
+  .nexus-mark{width:34px;height:34px;object-fit:contain;display:block;flex-shrink:0;}
+  .brand-mark,.logo-mark{border:none!important;background:none!important;clip-path:none!important;box-shadow:none!important;width:34px;height:34px;}
 </style>
 <div class="shell">
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="brand">
-      <div class="brand-mark">NX</div>
+      <div class="brand-mark"><img class="nexus-mark" src="assets/nexus-mark.png" alt="NEXUS"></div>
       <div class="brand-text">
         <b>NEXUS</b>
         <span>CROSS COMMAND CENTER</span>
@@ -398,7 +402,7 @@ body::before{
     <a class="nav-item" href="traffic.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg> Traffic</a>
     <a class="nav-item active" href="power-grid.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg> Power Grid</a>
     <a class="nav-item" href="air-quality.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8 6 5 9.5 5 13.5A7 7 0 0019 13.5C19 9.5 16 6 12 2z"/></svg> Air Quality</a>
-    <a class="nav-item unbuilt" title="No page built for this section yet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2s7 6.5 7 12a7 7 0 01-14 0c0-5.5 7-12 7-12z"/></svg> Water System</a>
+    <a href="water-system.html" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2s7 6.5 7 12a7 7 0 01-14 0c0-5.5 7-12 7-12z"/></svg> Water System</a>
     <a class="nav-item" href="security.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11z"/></svg> Security</a>
     <a class="nav-item" href="alerts.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg> Alerts &amp; Incidents<span class="badge">7</span></a>
     <a class="nav-item" href="settings.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.2a1.7 1.7 0 00-1-1.5 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.2a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.2a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.2a1.7 1.7 0 00-1.5 1z"/></svg> Settings</a>

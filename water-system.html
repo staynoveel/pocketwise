@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NEXUS — Water System</title>
+<link rel="icon" type="image/png" href="assets/favicon.png">
+</head>
+<body>
+<style>
+   :root{
+    --bg0:#080A0C;
+    --bg1:#101316;
+    --bg2:#15191D;
+    --line:#2A3035;
+    --text:#F2F2F2;
+    --sub:#8A9198;
+    --orange:#FF5A00;
+    --orange2:#FF7A18;
+    --amber:#FFB020;
+    --cyan:#00D9D9;
+    --cyan2:#00B8B8;
+    --green:#18C77A;
+    --red:#FF3B30;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--bg0);
+    color:var(--text);
+    font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    display:flex;
+    min-height:100vh;
+  }
+  button{ font-family:inherit; }
+  svg{ display:block; flex-shrink:0; }
+
+  .app{ display:flex; width:100%; }
+  .main{ flex:1; min-width:0; }
+  .content{ padding:22px 24px 32px; }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:230px; flex-shrink:0;
+    background:var(--bg1);
+    border-right:1px solid var(--line);
+    display:flex; flex-direction:column;
+    height:100vh; position:sticky; top:0;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; padding:22px 22px 20px; }
+  .brand-name{ font-size:17px; font-weight:800; letter-spacing:1px; line-height:1.15; }
+  .brand-sub{ font-size:8.5px; letter-spacing:1.6px; color:var(--sub); line-height:1.15; }
+
+  .nav{ flex:1; overflow-y:auto; padding:4px 12px; }
+  .nav-item{
+    width:100%; display:flex; align-items:center; gap:12px;
+    padding:10px 12px; margin-bottom:2px; border-radius:8px;
+    border:1px solid transparent; background:transparent;
+    cursor:pointer; text-align:left; color:var(--sub); font-size:14px;
+  }
+  .nav-item{ text-decoration:none; }
+  .nav-item.active{ border-color:var(--orange); background:rgba(255,90,0,0.10); color:var(--text); }
+  .nav-item b{ margin-left:auto; background:var(--red); color:#fff; border-radius:9px; padding:1px 6px; font-size:9px; font-weight:700; }
+  .nav-item.active svg g{ stroke:var(--orange2); }
+
+  .sidebar-foot{ padding:22px; display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .operational-label{ font-size:11.5px; letter-spacing:1.5px; color:var(--cyan2); margin-top:4px; }
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    height:64px; border-bottom:1px solid var(--line);
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 28px; background:var(--bg1);
+  }
+  .live-group{ display:flex; align-items:center; gap:10px; }
+  .live-dot{ width:8px; height:8px; border-radius:999px; background:var(--cyan); box-shadow:0 0 8px var(--cyan); }
+  .live-text{ font-size:13px; font-weight:700; letter-spacing:0.5px; }
+  .live-sub{ font-size:13px; color:var(--sub); margin-left:6px; }
+
+  .top-right{ display:flex; align-items:center; gap:26px; }
+  .time-block{ text-align:right; line-height:1.3; }
+  .time-block .time{ font-size:15px; font-variant-numeric: tabular-nums; }
+  .time-block .date{ font-size:12px; color:var(--sub); }
+
+  .bell-wrap{ position:relative; display:flex; }
+  .badge{
+    position:absolute; top:-8px; right:-9px;
+    background:var(--orange); color:#fff; font-size:10px; font-weight:700;
+    border-radius:999px; padding:1px 5px; line-height:13px;
+  }
+
+  .profile{ display:flex; align-items:center; gap:10px; padding-left:14px; border-left:1px solid var(--line); cursor:pointer; }
+  .avatar{
+    width:34px; height:34px; border-radius:999px;
+    background:linear-gradient(135deg, var(--cyan2), var(--orange));
+    display:flex; align-items:center; justify-content:center;
+    font-size:13px; font-weight:700; color:#08100f;
+  }
+  .profile-name{ font-size:13px; line-height:1.3; }
+  .profile-level{ font-size:11px; color:var(--sub); line-height:1.3; }
+
+  /* ---------- KPI strip ---------- */
+  .kpi-strip{ display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin:20px 0 16px; }
+  .kpi-card{ background:var(--bg1); border:1px solid var(--line); border-radius:12px; padding:16px; }
+  .kpi-top{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .kpi-icon{ width:30px; height:30px; border-radius:8px; background:var(--bg2); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .kpi-label{ font-size:11px; letter-spacing:0.6px; color:var(--sub); }
+  .kpi-value{ font-size:24px; font-weight:800; margin-bottom:8px; }
+  .kpi-foot{ display:flex; align-items:center; gap:6px; font-size:12px; color:var(--sub); }
+
+  /* ---------- Main grid ---------- */
+  .main-grid{ display:grid; grid-template-columns: 1fr 320px; gap:16px; margin-bottom:16px; align-items:stretch; }
+  .panel{ background:var(--bg1); border:1px solid var(--line); border-radius:12px; }
+  .panel-title{ font-size:14px; font-weight:700; letter-spacing:0.5px; }
+  .panel-head{ display:flex; align-items:center; justify-content:space-between; padding:18px 20px 14px; }
+  .view-all{ font-size:12px; color:var(--cyan2); background:none; border:none; cursor:pointer; }
+
+  /* Water system overview panel */
+  .panel.map-panel{ display:flex; flex-direction:column; }
+  .wso-body{ display:flex; flex:1; min-height:0; }
+  .wso-metrics{ width:200px; flex-shrink:0; padding:0 14px 16px 20px; display:flex; flex-direction:column; gap:2px; }
+  .metric-row{ display:flex; align-items:center; gap:10px; padding:9px 0; }
+  .metric-icon{ width:30px; height:30px; border-radius:8px; background:var(--bg2); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .metric-label{ font-size:10.5px; letter-spacing:0.4px; color:var(--sub); }
+  .metric-value{ font-size:14.5px; font-weight:700; }
+  .metric-value .metric-tag{ font-size:11px; font-weight:400; color:var(--sub); margin-left:5px; }
+
+  .wso-map{ flex:1; position:relative; background:radial-gradient(ellipse at 50% 40%, #0d1418 0%, #0a0d10 70%); border-left:1px solid var(--line); border-radius: 0 0 12px 0; overflow:hidden; min-height:640px; }
+  .map-controls{ position:absolute; top:14px; right:14px; display:flex; flex-direction:column; gap:6px; z-index:5; }
+  .map-ctrl-btn{ width:32px; height:32px; border-radius:6px; background:var(--bg2); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--sub); font-size:17px; }
+
+  /* Right column */
+  .right-col{ display:flex; flex-direction:column; gap:16px; height:100%; }
+  .right-col .panel:last-child{ display:flex; flex-direction:column; flex:1; }
+  .right-col .panel:last-child .sync-foot{ margin-top:auto; }
+
+  .alarm-row{ display:flex; gap:12px; padding:12px 20px; border-bottom:1px solid var(--line); align-items:flex-start; }
+  .alarm-row:last-of-type{ border-bottom:none; }
+  .alarm-icon{ width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .alarm-title{ font-size:13px; }
+  .alarm-desc{ font-size:11.5px; color:var(--sub); margin-top:1px; }
+  .alarm-time{ font-size:11px; color:var(--sub); margin-left:auto; white-space:nowrap; padding-left:8px; }
+
+  .quality-row{ padding:10px 20px; }
+  .quality-top{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:6px; }
+  .quality-zone{ font-size:13px; }
+  .quality-status{ font-size:11px; color:var(--sub); margin-top:1px; }
+  .quality-pct{ font-size:13px; color:var(--cyan); font-weight:700; }
+  .bar-track{ height:5px; border-radius:999px; background:var(--bg2); overflow:hidden; }
+  .bar-fill{ height:100%; background:linear-gradient(90deg, var(--cyan2), var(--cyan)); border-radius:999px; }
+  .quality-foot{ display:flex; align-items:center; justify-content:space-between; padding:14px 20px 18px; font-size:11.5px; color:var(--sub); }
+  .live-pill{ display:flex; align-items:center; gap:6px; color:var(--green); }
+  .live-pill-dot{ width:6px; height:6px; border-radius:999px; background:var(--green); }
+
+  .status-grid{ display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px; padding:0 20px 16px; }
+  .status-item{ text-align:left; }
+  .status-value{ font-size:22px; font-weight:800; }
+  .status-label{ font-size:11px; color:var(--sub); margin-top:1px; }
+  .status-tag{ font-size:11px; margin-top:1px; }
+  .sync-foot{ display:flex; align-items:center; justify-content:space-between; padding:14px 20px 18px; border-top:1px solid var(--line); font-size:11.5px; color:var(--sub); }
+
+  /* ---------- Bottom row of mini panels ---------- */
+  .bottom-grid{ display:grid; grid-template-columns: 1.4fr 1.4fr 1fr 1fr; gap:16px; margin-bottom:16px; }
+  .mini-panel{ padding:16px 18px; }
+  .mini-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:2px; }
+  .mini-title{ font-size:12px; font-weight:700; letter-spacing:0.5px; }
+  .mini-range{ font-size:10.5px; color:var(--sub); }
+  .mini-value{ font-size:19px; font-weight:800; margin:6px 0 8px; text-align:right; }
+  .mini-chart{ height:78px; }
+  .mini-xaxis{ display:flex; justify-content:space-between; font-size:9.5px; color:var(--sub); margin-top:6px; }
+
+  .reservoir-bars{ display:flex; align-items:flex-end; justify-content:space-around; height:78px; gap:10px; padding:0 4px; }
+  .rbar-col{ display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; flex:1; }
+  .rbar-pct{ font-size:12px; font-weight:700; margin-bottom:6px; }
+  .rbar{ width:26px; border-radius:3px 3px 0 0; background:linear-gradient(180deg, var(--cyan2), var(--cyan2) 40%, #0c3a3a); }
+  .rbar-labels{ display:flex; justify-content:space-around; margin-top:8px; }
+  .rbar-labels span{ font-size:10.5px; color:var(--sub); flex:1; text-align:center; }
+
+  .pump-perf{ display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; }
+
+  /* ---------- Live feed ---------- */
+  .live-feed{ display:flex; align-items:center; gap:28px; padding:14px 20px; overflow-x:auto; }
+  .feed-live{ display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:700; flex-shrink:0; }
+  .feed-item{ display:flex; align-items:baseline; gap:10px; flex-shrink:0; }
+  .feed-time{ font-size:11.5px; color:var(--sub); font-variant-numeric:tabular-nums; }
+  .feed-text{ font-size:12.5px; }
+  .feed-sub{ font-size:11px; color:var(--sub); }
+  .feed-more{ margin-left:auto; display:flex; align-items:center; gap:6px; color:var(--cyan2); font-size:12.5px; background:none; border:none; cursor:pointer; flex-shrink:0; }
+
+  @media (max-width:1300px){
+    .kpi-strip{ grid-template-columns:repeat(3,1fr); }
+    .main-grid{ grid-template-columns:1fr; }
+    .bottom-grid{ grid-template-columns:1fr 1fr; }
+  }
+
+  .nexus-mark{width:34px;height:34px;object-fit:contain;display:block;flex-shrink:0;}
+  .brand-mark,.logo-mark{border:none!important;background:none!important;clip-path:none!important;box-shadow:none!important;width:34px;height:34px;}
+</style>
+<div class="app">
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="brand">
+      <img class="nexus-mark" src="assets/nexus-mark.png" alt="NEXUS">
+      <div>
+        <div class="brand-name">NEXUS</div>
+        <div class="brand-sub">CRISIS COMMAND CENTER</div>
+      </div>
+    </div>
+
+    <nav class="nav" id="navList"></nav>
+
+    <div class="sidebar-foot">
+      <svg id="opGauge" width="104" height="104" viewBox="0 0 104 104"></svg>
+      <div class="operational-label">OPERATIONAL</div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <div class="main">
+    <div class="topbar">
+      <div class="live-group">
+        <span class="live-dot"></span>
+        <span class="live-text">LIVE</span>
+        <span class="live-sub">Real-Time Monitoring</span>
+      </div>
+      <div class="top-right">
+        <div class="time-block">
+          <div class="time" id="clockTime">14:35:42</div>
+          <div class="date" id="clockDate">May 26, 2024</div>
+        </div>
+        <div class="bell-wrap">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+            <path d="M6 9a6 6 0 1 1 12 0c0 4 1.5 5.5 1.5 5.5H4.5S6 13 6 9Z" stroke="#8A9198" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10 19a2 2 0 0 0 4 0" stroke="#8A9198" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="badge">12</span>
+        </div>
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="5" width="18" height="14" rx="2" stroke="#8A9198" stroke-width="1.8"/>
+          <path d="m3.5 6 8.5 7 8.5-7" stroke="#8A9198" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+          <path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z" stroke="#8A9198" stroke-width="1.8" stroke-linejoin="round"/>
+          <circle cx="12" cy="13.5" r="3.2" stroke="#8A9198" stroke-width="1.8"/>
+        </svg>
+        <div class="profile">
+          <div class="avatar">O1</div>
+          <div>
+            <div class="profile-name">Operator 01</div>
+            <div class="profile-level">Level 1</div>
+          </div>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+            <polyline points="6 9 12 15 18 9" stroke="#8A9198" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ===== KPI STRIP ===== -->
+      <div class="kpi-strip" id="kpiStrip"></div>
+
+      <!-- ===== MAIN GRID ===== -->
+      <div class="main-grid">
+        <!-- Water System Overview -->
+        <div class="panel map-panel">
+          <div class="panel-head" style="padding-bottom:0;">
+            <div class="panel-title">WATER SYSTEM OVERVIEW</div>
+          </div>
+          <div class="wso-body">
+            <div class="wso-metrics" id="wsoMetrics"></div>
+            <div class="wso-map">
+              <svg id="mapSvg" width="100%" height="100%" viewBox="0 0 900 640" preserveAspectRatio="xMidYMid meet"></svg>
+              <div class="map-controls">
+                <div class="map-ctrl-btn">+</div>
+                <div class="map-ctrl-btn">–</div>
+                <div class="map-ctrl-btn" style="font-size:13px;">◎</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right column -->
+        <div class="right-col">
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title">WATER ALARMS</div>
+              <button class="view-all">View All</button>
+            </div>
+            <div id="alarmList"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title">WATER QUALITY MONITORING</div>
+              <button class="view-all">View All</button>
+            </div>
+            <div id="qualityList"></div>
+            <div class="quality-foot">
+              <span>Last Update: <span id="qualityUpdateTime">14:35:30</span></span>
+              <span class="live-pill"><span class="live-pill-dot"></span>Live</span>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head" style="padding-bottom:8px;">
+              <div class="panel-title">WATER SYSTEM STATUS</div>
+            </div>
+            <div class="status-grid" id="statusGrid"></div>
+            <div class="sync-foot">
+              <span>Last Sync: <span id="syncTime">14:35:42</span></span>
+              <span class="live-pill"><span class="live-pill-dot"></span>Live</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== BOTTOM MINI PANELS ===== -->
+      <div class="bottom-grid" id="bottomGrid"></div>
+
+      <!-- ===== LIVE FEED ===== -->
+      <div class="panel">
+        <div class="live-feed" id="liveFeed"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script>
+  /* ===================== Color tokens ===================== */
+const C = {
+  bg0:"#080A0C", bg1:"#101316", bg2:"#15191D", line:"#2A3035",
+  text:"#F2F2F2", sub:"#8A9198",
+  orange:"#FF5A00", orange2:"#FF7A18", amber:"#FFB020",
+  cyan:"#00D9D9", cyan2:"#00B8B8", green:"#18C77A", red:"#FF3B30"
+};
+
+/* ===================== Icon library ===================== */
+const ICONS = {
+  dashboard: `<rect x="3" y="3" width="7" height="7" rx="1.3"/><rect x="14" y="3" width="7" height="7" rx="1.3"/><rect x="3" y="14" width="7" height="7" rx="1.3"/><rect x="14" y="14" width="7" height="7" rx="1.3"/>`,
+  map: `<path d="M9 3 3 5.5v15L9 18l6 3 6-2.5v-15L15 6l-6-3z"/><path d="M9 3v15"/><path d="M15 6v15"/>`,
+  traffic: `<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="17" y2="12"/><line x1="3" y1="18" x2="13" y2="18"/>`,
+  power: `<path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z" stroke-linejoin="round"/>`,
+  air: `<path d="M4 8h11a3 3 0 1 0-2.8-4"/><path d="M4 16h14a3 3 0 1 1-2.8 4"/><path d="M2 12h17a3 3 0 1 0-2.8-4"/>`,
+  water: `<path d="M12 3s7 7.5 7 12.2A7 7 0 0 1 5 15.2C5 10.5 12 3 12 3z" stroke-linejoin="round"/>`,
+  shield: `<path d="M12 3 4.5 6v6c0 5 3.4 8.4 7.5 9.9 4.1-1.5 7.5-4.9 7.5-9.9V6L12 3z" stroke-linejoin="round"/>`,
+  bell: `<path d="M6 9a6 6 0 1 1 12 0c0 4 1.5 5.5 1.5 5.5H4.5S6 13 6 9Z" stroke-linejoin="round"/><path d="M10 19a2 2 0 0 0 4 0"/>`,
+  settings: `<circle cx="12" cy="12" r="3"/><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.5-2-3.4-2.3.8a7.6 7.6 0 0 0-1.7-1L15 3.5h-4L10.6 6a7.6 7.6 0 0 0-1.7 1L6.6 6.2l-2 3.4L6.6 11a7.5 7.5 0 0 0 0 2l-2 1.5 2 3.4 2.3-.8c.5.4 1.1.75 1.7 1L11 21h4l.4-2.5c.6-.25 1.2-.6 1.7-1l2.3.8 2-3.4L19.4 13Z" stroke-linejoin="round"/>`,
+  car: `<path d="M4 16v-3.5l1.6-4.2A2 2 0 0 1 7.5 7h9a2 2 0 0 1 1.9 1.3L20 12.5V16" stroke-linejoin="round"/><rect x="2.5" y="13" width="19" height="5.5" rx="1.6"/><circle cx="7" cy="18.6" r="1.6"/><circle cx="17" cy="18.6" r="1.6"/>`,
+  cloud: `<path d="M7 18a4.5 4.5 0 0 1-.7-8.94A5.5 5.5 0 0 1 17 8.5a4 4 0 0 1-.5 8H7Z" stroke-linejoin="round"/>`,
+  bolt: `<path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z" stroke-linejoin="round"/>`,
+  drop: `<path d="M12 3s7 7.5 7 12.2A7 7 0 0 1 5 15.2C5 10.5 12 3 12 3z" stroke-linejoin="round"/>`,
+  gauge: `<circle cx="12" cy="12" r="9"/><path d="M12 12 16 8.5"/><path d="M8 12h.01"/>`,
+  tank: `<rect x="5" y="5" width="14" height="14" rx="2"/><line x1="5" y1="12" x2="19" y2="12"/>`,
+  waves: `<path d="M3 8c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 4.5 0 3 1.5 4.5 0"/><path d="M3 14c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 4.5 0 3 1.5 4.5 0"/><path d="M3 20c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 4.5 0 3 1.5 4.5 0"/>`,
+  pump: `<circle cx="9" cy="9" r="5"/><path d="M13 13l7 7"/><path d="M17 17h4v4"/>`,
+  valve: `<circle cx="12" cy="12" r="8"/><path d="M8 12h8"/><path d="M12 8v8"/>`,
+  trendUp: `<polyline points="4 15 9 9 13 12.5 20 5"/><polyline points="14 5 20 5 20 11"/>`,
+  warnTri: `<path d="M12 3.5 22 20H2L12 3.5Z" stroke-linejoin="round"/><line x1="12" y1="9.5" x2="12" y2="14"/>`,
+  arrowRight: `<line x1="4" y1="12" x2="20" y2="12"/><polyline points="14 6 20 12 14 18"/>`,
+  house: `<path d="M4 11 12 4l8 7" /><path d="M6 10v9h12v-9" stroke-linejoin="round"/>`,
+};
+
+function iconSVG(name, {size=18,color="#8A9198",strokeWidth=1.8} = {}){
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none">
+    <g stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]||""}</g>
+  </svg>`;
+}
+
+/* ===================== Nav ===================== */
+const NAV = [
+  { key:"dashboard", label:"Dashboard", icon:"dashboard", href:"dashboard.html" },
+  { key:"citymap", label:"City Map", icon:"map", href:"city-map.html" },
+  { key:"traffic", label:"Traffic", icon:"traffic", href:"traffic.html" },
+  { key:"power", label:"Power Grid", icon:"power", href:"power-grid.html" },
+  { key:"air", label:"Air Quality", icon:"air", href:"air-quality.html" },
+  { key:"water", label:"Water System", icon:"water", href:"water-system.html" },
+  { key:"security", label:"Security", icon:"shield", href:"security.html" },
+  { key:"alerts", label:"Alerts & Incidents", icon:"bell", href:"alerts.html", badge:"7" },
+  { key:"settings", label:"Settings", icon:"settings", href:"settings.html" },
+];
+const activeNav = "water";
+function renderNav(){
+  const el = document.getElementById("navList");
+  el.innerHTML = NAV.map(item => {
+    const isActive = item.key === activeNav;
+    return `<a class="nav-item ${isActive ? 'active' : ''}" href="${item.href}">
+      ${iconSVG(item.icon, {size:18, color: isActive ? C.orange2 : C.sub})}
+      <span>${item.label}</span>${item.badge ? `<b>${item.badge}</b>` : ""}
+    </a>`;
+  }).join("");
+}
+renderNav();
+
+/* ===================== Ring gauge helper ===================== */
+function ringGaugeSVG(value, {size=104,thickness=9,color=C.cyan} = {}){
+  const r = (size-thickness)/2, cx=size/2, cy=size/2;
+  const circumference = 2*Math.PI*r;
+  const dash = (value/100)*circumference;
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${C.bg2}" stroke-width="${thickness}"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="${thickness}"
+      stroke-linecap="round" stroke-dasharray="${dash} ${circumference-dash}" transform="rotate(-90 ${cx} ${cy})"/>
+    <text x="50%" y="52%" text-anchor="middle" dominant-baseline="middle" fill="${C.text}" font-size="${size*0.22}" font-weight="700" font-family="Inter, sans-serif">${value}%</text>`;
+}
+document.getElementById("opGauge").innerHTML = ringGaugeSVG(91, {size:104, thickness:9, color:C.cyan});
+
+/* ===================== KPI strip ===================== */
+const KPIS = [
+  { icon:"car", color:C.orange, label:"TRAFFIC", value:"82%", tag:"Heavy Traffic", up:false, tagColor:C.orange },
+  { icon:"cloud", color:C.cyan2, label:"AIR QUALITY", value:"185", valuePrefix:"AQI ", tag:"Unhealthy", up:false, tagColor:C.orange, valueColor:C.orange },
+  { icon:"bolt", color:C.amber, label:"POWER GRID", value:"76%", tag:"Stable", up:false, tagColor:C.sub, valueColor:C.amber },
+  { icon:"drop", color:C.cyan2, label:"WATER SYSTEM", value:"91%", tag:"Stable", up:true, tagColor:C.sub, valueColor:C.cyan },
+  { icon:"shield", color:C.cyan2, label:"SECURITY", value:"98%", tag:"Online", up:true, tagColor:C.sub, valueColor:C.cyan },
+];
+function sparkPathMini(up){
+  return up
+    ? `<polyline points="1 11 6 6 10 8 14 3 19 1" fill="none" stroke="${C.cyan}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>`
+    : `<polyline points="1 3 6 5 10 4 14 9 19 6" fill="none" stroke="${C.orange}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>`;
+}
+document.getElementById("kpiStrip").innerHTML = KPIS.map(k => `
+  <div class="kpi-card">
+    <div class="kpi-top">
+      <div class="kpi-icon">${iconSVG(k.icon,{size:15,color:k.color,strokeWidth:1.8})}</div>
+      <div class="kpi-label">${k.label}</div>
+    </div>
+    <div class="kpi-value" style="color:${k.valueColor||C.text};">${k.valuePrefix||''}${k.value}</div>
+    <div class="kpi-foot" style="color:${k.tagColor};">
+      <svg width="20" height="13" viewBox="0 0 20 13">${sparkPathMini(k.up)}</svg>
+      ${k.tag}
+    </div>
+  </div>
+`).join("");
+
+/* ===================== Water System Overview metrics ===================== */
+const WSO_METRICS = [
+  { icon:"gauge", label:"WATER QUALITY", value:"96%", tag:"Good" },
+  { icon:"valve", label:"SUPPLY PRESSURE", value:"3.6 bar", tag:"Optimal" },
+  { icon:"tank", label:"RESERVOIR LEVEL", value:"72%", tag:"Normal" },
+  { icon:"waves", label:"WATER FLOW", value:"1,245 L/s", tag:"Stable" },
+  { icon:"pump", label:"PUMP STATUS", value:"24/26", tag:"Operational" },
+  { icon:"valve", label:"VALVE STATUS", value:"89%", tag:"Open" },
+];
+document.getElementById("wsoMetrics").innerHTML = WSO_METRICS.map(m => `
+  <div class="metric-row">
+    <div class="metric-icon">${iconSVG(m.icon,{size:15,color:C.cyan2,strokeWidth:1.7})}</div>
+    <div>
+      <div class="metric-label">${m.label}</div>
+      <div class="metric-value">${m.value}<span class="metric-tag">${m.tag}</span></div>
+    </div>
+  </div>
+`).join("");
+
+/* ===================== Water network map ===================== */
+/* Node positions on a 900x640 canvas, styled like the reference schematic */
+const nodes = {
+  north:   { x: 355, y: 80,  label:"RESERVOIR NORTH", value:"72%", type:"house", labelSide:"right" },
+  central: { x: 275, y: 255, label:"WTP CENTRAL",      value:"96%", type:"house", labelSide:"left" },
+  zoneA:   { x: 555, y: 190, label:"ZONE A",  value:"3.4 bar", type:"tower", labelSide:"right" },
+  zoneB:   { x: 420, y: 275, label:"ZONE B",  value:"3.6 bar", type:"house", labelSide:"right" },
+  zoneD:   { x: 285, y: 435, label:"ZONE D",  value:"3.5 bar", type:"tower", labelSide:"right" },
+  east:    { x: 645, y: 320, label:"RESERVOIR EAST", value:"68%", type:"house", labelSide:"right" },
+  south:   { x: 495, y: 515, label:"RESERVOIR SOUTH", value:"78%", type:"house", labelSide:"bottom" },
+};
+
+const pipes = [
+  ["north","central"], ["north","zoneA"],
+  ["central","zoneB"], ["zoneB","zoneA"], ["zoneA","east"],
+  ["central","zoneD"], ["zoneD","south"], ["south","east"], ["zoneB","south"]
+];
+
+function nodeIconMarkup(type){
+  if(type==="house"){
+    return `<path d="M-12 -1 0 -12 12 -1" fill="none" stroke="${C.cyan}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="-8" y="-1" width="16" height="12" rx="1.4" fill="none" stroke="${C.cyan}" stroke-width="2"/>`;
+  }
+  return `<rect x="-7" y="-12" width="14" height="19" rx="2" fill="none" stroke="${C.cyan}" stroke-width="2"/>
+          <circle cx="0" cy="9.5" r="4" fill="none" stroke="${C.cyan}" stroke-width="2"/>`;
+}
+
+function buildMap(){
+  const W = 900, H = 640;
+  let svg = "";
+  // background road grid (subtle)
+  svg += `<g stroke="${C.line}" stroke-width="1" opacity="0.35">`;
+  for(let i=0;i<=H/60;i++){ svg += `<line x1="0" y1="${i*60}" x2="${W}" y2="${i*60}"/>`; }
+  for(let i=0;i<=W/60;i++){ svg += `<line x1="${i*60}" y1="0" x2="${i*60}" y2="${H}"/>`; }
+  svg += `</g>`;
+
+  // pipes (orthogonal-ish routed lines with glow)
+  svg += `<g fill="none" stroke="${C.cyan}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.9" filter="url(#glow)">`;
+  pipes.forEach(([a,b])=>{
+    const p1 = nodes[a], p2 = nodes[b];
+    const midX = (p1.x + p2.x)/2;
+    svg += `<path d="M${p1.x},${p1.y} L${midX},${p1.y} L${midX},${p2.y} L${p2.x},${p2.y}"/>`;
+  });
+  svg += `</g>`;
+
+  // one highlighted (orange) segment like reference image, zoneB -> south area
+  svg += `<path d="M${nodes.zoneB.x},${nodes.zoneB.y+70} L${nodes.zoneB.x},${nodes.south.y-60}" stroke="${C.orange}" stroke-width="4" stroke-linecap="round" opacity="0.9"/>`;
+
+  // pipe joints (small dots along pipes)
+  svg += `<g fill="${C.cyan}">`;
+  pipes.forEach(([a,b])=>{
+    const p1 = nodes[a], p2 = nodes[b];
+    const midX = (p1.x + p2.x)/2;
+    svg += `<circle cx="${midX}" cy="${p1.y}" r="4"/>`;
+    svg += `<circle cx="${midX}" cy="${p2.y}" r="4"/>`;
+  });
+  svg += `</g>`;
+
+  // nodes
+  Object.entries(nodes).forEach(([key,n])=>{
+    svg += `<g transform="translate(${n.x},${n.y})">`;
+    svg += `<circle r="19" fill="${C.bg1}" stroke="${C.cyan}" stroke-width="2" opacity="0.9"/>`;
+    svg += nodeIconMarkup(n.type);
+    svg += `</g>`;
+
+    let lx = n.x, ly = n.y - 34, anchor = "middle";
+    if(n.labelSide === "right"){ lx = n.x + 27; ly = n.y - 8; anchor = "start"; }
+    if(n.labelSide === "left"){ lx = n.x - 27; ly = n.y - 8; anchor = "end"; }
+    if(n.labelSide === "bottom"){ lx = n.x; ly = n.y + 46; anchor = "middle"; }
+
+    svg += `<text x="${lx}" y="${ly}" text-anchor="${anchor}" fill="${C.sub}" font-size="14" font-family="Inter, sans-serif" letter-spacing="0.3">${n.label}</text>`;
+    svg += `<text x="${lx}" y="${ly+21}" text-anchor="${anchor}" fill="${C.cyan}" font-size="19" font-weight="700" font-family="Inter, sans-serif">${n.value}</text>`;
+  });
+
+  const defs = `<defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>`;
+
+  document.getElementById("mapSvg").innerHTML = defs + svg;
+}
+buildMap();
+
+/* ===================== Water Alarms ===================== */
+const ALARMS = [
+  { title:"Low Pressure", desc:"Zone C3", time:"2 min ago", level:"critical" },
+  { title:"Valve Malfunction", desc:"Main St. Valve 12", time:"8 min ago", level:"warning" },
+  { title:"High Turbidity", desc:"WTP Central", time:"10 min ago", level:"warning" },
+  { title:"Pump Overload", desc:"Pump Station D4", time:"15 min ago", level:"warning" },
+];
+document.getElementById("alarmList").innerHTML = ALARMS.map(a => {
+  const color = a.level === "critical" ? C.red : C.amber;
+  return `
+  <div class="alarm-row">
+    <div class="alarm-icon" style="background:${color}22;">${iconSVG("warnTri",{size:15,color:color,strokeWidth:1.9})}</div>
+    <div>
+      <div class="alarm-title">${a.title}</div>
+      <div class="alarm-desc">${a.desc}</div>
+    </div>
+    <div class="alarm-time">${a.time}</div>
+  </div>`;
+}).join("");
+
+/* ===================== Water Quality Monitoring ===================== */
+const ZONES = [
+  { zone:"ZONE A", status:"Good", pct:98 },
+  { zone:"ZONE B", status:"Good", pct:96 },
+  { zone:"ZONE C", status:"Good", pct:94 },
+  { zone:"ZONE D", status:"Good", pct:95 },
+];
+document.getElementById("qualityList").innerHTML = ZONES.map(z => `
+  <div class="quality-row">
+    <div class="quality-top">
+      <div><span class="quality-zone">${z.zone}</span></div>
+      <span class="quality-pct">${z.pct}%</span>
+    </div>
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+      <span class="quality-status">${z.status}</span>
+    </div>
+    <div class="bar-track"><div class="bar-fill" style="width:${z.pct}%;"></div></div>
+  </div>
+`).join("");
+
+/* ===================== Water System Status ===================== */
+const STATUS_ITEMS = [
+  { value:"24", label:"Pumps", tag:"Operational", color:C.green },
+  { value:"89", label:"Valves", tag:"Open", color:C.cyan },
+  { value:"12", label:"Tanks", tag:"Active", color:C.amber },
+  { value:"3", label:"Treatment", label2:"Plants", tag:"Online", color:C.cyan },
+];
+document.getElementById("statusGrid").innerHTML = STATUS_ITEMS.map(s => `
+  <div class="status-item">
+    <div class="status-value">${s.value}</div>
+    <div class="status-label">${s.label}${s.label2?'<br/>'+s.label2:''}</div>
+    <div class="status-tag" style="color:${s.color};">${s.tag}</div>
+  </div>
+`).join("");
+
+/* ===================== Chart helpers ===================== */
+function seriesFromSeed(seed, n, base, spread){
+  let s = seed;
+  const rand = () => { s = (s*9301+49297) % 233280; return s/233280; };
+  const arr = []; let v = base;
+  for(let i=0;i<n;i++){ v = v + (rand()-0.5)*spread; arr.push(v); }
+  return arr;
+}
+function lineSparkSVG(data, {w=260,h=78,color=C.cyan,strokeWidth=1.8} = {}){
+  const min = Math.min(...data), max = Math.max(...data), range=(max-min)||1;
+  const pts = data.map((v,i)=>{
+    const x=(i/(data.length-1))*w;
+    const y=h-((v-min)/range)*(h-6)-3;
+    return [x,y];
+  });
+  const path = pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  const areaPath = `${path} L${w},${h} L0,${h} Z`;
+  const gradId = 'gg-'+color.replace('#','')+Math.floor(Math.random()*100000);
+  return `<svg width="100%" height="100%" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="overflow:visible;">
+    <defs><linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${color}" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+    </linearGradient></defs>
+    <path d="${areaPath}" fill="url(#${gradId})" stroke="none"/>
+    <path d="${path}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linejoin="round" stroke-linecap="round"/>
+  </svg>`;
+}
+function ringSmallSVG(value, {size=96,thickness=9,color=C.cyan} = {}){
+  const r=(size-thickness)/2, cx=size/2, cy=size/2;
+  const circumference = 2*Math.PI*r;
+  const dash = (value/100)*circumference;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${C.bg2}" stroke-width="${thickness}"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="${thickness}" stroke-linecap="round"
+      stroke-dasharray="${dash} ${circumference-dash}" transform="rotate(-90 ${cx} ${cy})"/>
+    <text x="50%" y="47%" text-anchor="middle" dominant-baseline="middle" fill="${C.text}" font-size="${size*0.19}" font-weight="800" font-family="Inter, sans-serif">${value}%</text>
+    <text x="50%" y="66%" text-anchor="middle" dominant-baseline="middle" fill="${C.sub}" font-size="${size*0.1}" font-family="Inter, sans-serif">Efficiency</text>
+  </svg>`;
+}
+
+/* ===================== Bottom grid: consumption / pressure / reservoirs / pump ===================== */
+const consumption = seriesFromSeed(41, 24, 1200, 500);
+const pressure = seriesFromSeed(52, 24, 3.6, 0.5);
+
+const bottomHTML = `
+  <div class="panel mini-panel">
+    <div class="mini-head"><span class="mini-title">WATER CONSUMPTION</span><span class="mini-range">Last 24 Hours</span></div>
+    <div class="mini-value">1,245 L/s</div>
+    <div class="mini-chart">${lineSparkSVG(consumption,{color:C.cyan})}</div>
+    <div class="mini-xaxis"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>
+  </div>
+  <div class="panel mini-panel">
+    <div class="mini-head"><span class="mini-title">PRESSURE MONITORING</span><span class="mini-range">Last 24 Hours</span></div>
+    <div class="mini-value">3.6 bar</div>
+    <div class="mini-chart">${lineSparkSVG(pressure,{color:C.cyan})}</div>
+    <div class="mini-xaxis"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>
+  </div>
+  <div class="panel mini-panel">
+    <div class="mini-head"><span class="mini-title">RESERVOIR LEVELS</span></div>
+    <div class="mini-range" style="margin-bottom:10px;">Last 24 Hours</div>
+    <div class="reservoir-bars">
+      ${[["North",72],["East",68],["South",78]].map(([label,pct])=>`
+        <div class="rbar-col">
+          <div class="rbar-pct">${pct}%</div>
+          <div class="rbar" style="height:${pct*0.66}px;"></div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="rbar-labels">
+      <span>North</span><span>East</span><span>South</span>
+    </div>
+  </div>
+  <div class="panel mini-panel">
+    <div class="mini-head"><span class="mini-title">PUMP PERFORMANCE</span></div>
+    <div class="mini-range" style="margin-bottom:6px;">Last 24 Hours</div>
+    <div class="pump-perf">${ringSmallSVG(92,{size:96,thickness:9,color:C.cyan})}</div>
+  </div>
+`;
+document.getElementById("bottomGrid").innerHTML = bottomHTML;
+
+/* ===================== Live feed ===================== */
+const FEED = [
+  { time:"14:35:01", text:"Low Pressure Detected", sub:"Zone C3" },
+  { time:"14:35:05", text:"Valve Adjusted", sub:"Main St. Valve 12" },
+  { time:"14:35:10", text:"Pump Station D4", sub:"Back to Normal" },
+  { time:"14:35:15", text:"Water Quality Normal", sub:"WTP Central" },
+];
+document.getElementById("liveFeed").innerHTML = `
+  <div class="feed-live"><span class="live-dot"></span>LIVE FEED</div>
+  ${FEED.map(f => `
+    <div class="feed-item">
+      <span class="feed-time">${f.time}</span>
+      <span><span class="feed-text">${f.text}</span><br/><span class="feed-sub">${f.sub}</span></span>
+    </div>
+  `).join('')}
+  <button class="feed-more">View All Feed ${iconSVG("arrowRight",{size:14,color:C.cyan2,strokeWidth:1.8})}</button>
+`;
+
+/* ===================== Live clock ===================== */
+function pad(n){ return n.toString().padStart(2,"0"); }
+function updateClock(){
+  const now = new Date();
+  const h=pad(now.getHours()), m=pad(now.getMinutes()), s=pad(now.getSeconds());
+  document.getElementById("clockTime").textContent = `${h}:${m}:${s}`;
+  const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  document.getElementById("clockDate").textContent = `${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+  document.getElementById("syncTime").textContent = `${h}:${m}:${s}`;
+  document.getElementById("qualityUpdateTime").textContent = `${h}:${m}:${s}`;
+}
+updateClock();
+setInterval(updateClock, 1000);
+</script>
+</body>
+</html>
